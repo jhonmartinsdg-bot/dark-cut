@@ -209,7 +209,7 @@ function Editor() {
           <Card n={2} title="Cortar silêncios">
             <div className="flex items-center gap-4">
               <span className="w-40 text-xs text-muted-foreground">Sensibilidade: {thr} dB</span>
-              <Slider min={-60} max={-20} step={1} value={[thr]} onValueChange={(v) => setThr(v[0])} className="flex-1" />
+              <Slider min={-60} max={-20} step={1} value={[thr]} onValueChange={(v) => setThr(v[0] ?? -40)} className="flex-1" />
               <button disabled={!orig} onClick={runCut} className="flex items-center gap-2 rounded-xl bg-ember px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-40"><Scissors className="h-4 w-4" /> Cortar</button>
             </div>
             {narr && (
@@ -233,7 +233,7 @@ function Editor() {
                 <input type="file" accept="audio/*" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setMusic(await ac().decodeAudioData(await f.arrayBuffer())); }} />
               </label>
               <span className="text-xs text-muted-foreground">Volume</span>
-              <Slider min={0} max={1} step={0.05} value={[musicVol]} onValueChange={(v) => setMusicVol(v[0])} className="w-32" />
+              <Slider min={0} max={1} step={0.05} value={[musicVol]} onValueChange={(v) => setMusicVol(v[0] ?? 0.5)} className="w-32" />
             </div>
           </Card>
 

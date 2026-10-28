@@ -38,7 +38,7 @@ const testimonials = [
   { n: "Diego M.", r: "Curiosidades dark · YouTube", q: "O corte de silêncio sozinho já paga a assinatura." },
 ];
 
-const faq = [
+const faq: [string, string][] = [
   ["Preciso saber editar vídeo?", "Não. Você envia áudio e imagens, a IA faz o resto. Ajustes são opcionais."],
   ["Funciona com qualquer narração?", "Sim: voz própria, locutor ou voz gerada por IA, em qualquer idioma."],
   ["Posso cancelar quando quiser?", "Sim, sem fidelidade. Cancele com um clique."],
