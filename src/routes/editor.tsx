@@ -105,10 +105,10 @@ function Editor() {
       group.forEach((w, i) => {
         const active = g0 + i === wi;
         const txt = w.text.toUpperCase();
-        if (active) { c.fillStyle = "#ef4a2b"; c.fillRect(x - 8, y - 44, widths[i] + 16, 88); }
+        if (active) { c.fillStyle = "#ef4a2b"; c.fillRect(x - 8, y - 44, widths[i]! + 16, 88); }
         c.lineWidth = 8; c.strokeStyle = "#000"; c.strokeText(txt, x, y);
         c.fillStyle = active ? "#fff" : "#f5e9d6"; c.fillText(txt, x, y);
-        x += widths[i] + sp;
+        x += widths[i]! + sp;
       });
     }
   }
