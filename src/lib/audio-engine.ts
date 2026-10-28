@@ -11,7 +11,7 @@ export function detectSpeech(buf: AudioBuffer, thresholdDb = -40, minSilence = 0
   for (let i = 0; i < data.length; i += win) {
     let sum = 0;
     const end = Math.min(i + win, data.length);
-    for (let j = i; j < end; j++) sum += data[j] * data[j];
+    for (let j = i; j < end; j++) { const v = data[j]!; sum += v * v; }
     const rms = Math.sqrt(sum / (end - i));
     const t = i / sr;
     if (rms > thr) {
@@ -53,7 +53,7 @@ export function peaks(buf: AudioBuffer, n = 400) {
   const step = Math.floor(d.length / n) || 1;
   return Array.from({ length: n }, (_, i) => {
     let m = 0;
-    for (let j = i * step; j < (i + 1) * step && j < d.length; j++) m = Math.max(m, Math.abs(d[j]));
+    for (let j = i * step; j < (i + 1) * step && j < d.length; j++) m = Math.max(m, Math.abs(d[j]!));
     return m;
   });
 }
@@ -68,12 +68,12 @@ export function alignWords(script: string, segs: Segment[]): Word[] {
   const chars = words.reduce((a, w) => a + w.length + 1, 0);
   const out: Word[] = [];
   let si = 0;
-  let t = segs[0].start;
+  let t = segs[0]!.start;
   for (const w of words) {
     let dur = ((w.length + 1) / chars) * speech;
     const start = t;
     while (dur > 0 && si < segs.length) {
-      const room = segs[si].end - t;
+      const room = segs[si]!.end - t;
       if (dur <= room) { t += dur; dur = 0; }
       else { dur -= room; si++; t = segs[si]?.start ?? t; }
     }
@@ -92,8 +92,8 @@ export function buildScenes(segs: Segment[], duration: number, imgCount: number)
   for (let i = 1; i < imgCount; i++) {
     const ideal = (duration * i) / imgCount;
     const best = bounds.reduce((b, t) => (Math.abs(t - ideal) < Math.abs(b - ideal) ? t : b), ideal);
-    cuts.push(best > cuts[cuts.length - 1] + 0.5 ? best : ideal);
+    cuts.push(best > cuts[cuts.length - 1]! + 0.5 ? best : ideal);
   }
   cuts.push(duration);
-  return cuts.slice(0, -1).map((c, i) => ({ start: c, end: cuts[i + 1], img: i, motion: i % 4 }));
+  return cuts.slice(0, -1).map((c, i) => ({ start: c, end: cuts[i + 1]!, img: i, motion: i % 4 }));
 }

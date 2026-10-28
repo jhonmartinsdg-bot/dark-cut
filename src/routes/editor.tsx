@@ -82,7 +82,7 @@ function Editor() {
       c.globalAlpha = 1;
     };
     if (idx >= 0) {
-      const s = scenes[idx];
+      const s = scenes[idx]!;
       drawScene(s, 1);
       const next = scenes[idx + 1];
       const tr = 0.4;
@@ -99,7 +99,7 @@ function Editor() {
       c.font = "bold 76px 'Bebas Neue', Impact, sans-serif";
       c.textBaseline = "middle";
       const sp = 18;
-      const widths = group.map((w) => c.measureText(w.text.toUpperCase()).width);
+      const widths: number[] = group.map((w) => c.measureText(w.text.toUpperCase()).width);
       let x = (W - widths.reduce((a, b) => a + b, 0) - sp * (group.length - 1)) / 2;
       const y = H * 0.72;
       group.forEach((w, i) => {
