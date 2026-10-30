@@ -24,6 +24,21 @@ function themeScript(t: string) {
   return `Você já ouviu falar sobre ${t}? Poucas pessoas conhecem essa história. Tudo começou numa noite fria, quando ninguém esperava. O que aconteceu depois mudou tudo para sempre. E até hoje, ninguém conseguiu explicar. Fique até o final, porque a verdade é mais assustadora do que você imagina.`;
 }
 
+const soundIdeas = [
+  { category: "Terror", title: "Sussurros na Escuridão", mood: "Drones graves, sussurros distantes e tensão crescente.", use: "Casas assombradas, aparições e relatos sobrenaturais." },
+  { category: "Terror", title: "Presença Atrás de Você", mood: "Ruídos ambientes, notas dissonantes e impactos repentinos.", use: "Sustos, perseguições e revelações assustadoras." },
+  { category: "Suspense", title: "Contagem Regressiva", mood: "Batidas pulsantes que aceleram gradualmente.", use: "Perigo iminente, investigações e situações urgentes." },
+  { category: "Mistério", title: "O Segredo Esquecido", mood: "Piano minimalista, cordas suaves e atmosfera enigmática.", use: "Casos inexplicáveis, desaparecimentos e teorias." },
+  { category: "Psicológico", title: "Mente em Colapso", mood: "Texturas inquietantes, ecos e notas instáveis.", use: "Paranoia, obsessão e reviravoltas." },
+  { category: "Emocionante", title: "Lágrimas em Silêncio", mood: "Piano lento e cordas delicadas.", use: "Perdas, despedidas, saudade e histórias comoventes." },
+  { category: "Superação", title: "Depois da Tempestade", mood: "Piano inspirador e cordas cinematográficas.", use: "Recomeços, coragem e transformação." },
+  { category: "Motivação", title: "Mentalidade Imparável", mood: "Percussão firme, synths épicos e ritmo crescente.", use: "Conquistas, disciplina, ambição e grandes viradas." },
+  { category: "Ação", title: "Perseguição Final", mood: "Percussão intensa, pulsos eletrônicos e cordas rápidas.", use: "Fugas, confrontos e desafios." },
+  { category: "Épico", title: "O Grande Destino", mood: "Metais, coral cinematográfico e crescendos.", use: "Descobertas extraordinárias e momentos decisivos." },
+  { category: "Documentário", title: "Verdade Oculta", mood: "Ambient eletrônico discreto e pulsação investigativa.", use: "Curiosidades, fatos reais e documentários dark." },
+  { category: "Reflexão", title: "Ecos do Tempo", mood: "Piano contemplativo, pads suaves e textura ambiente.", use: "Lições de vida, pensamentos e histórias profundas." },
+] as const;
+
 function Editor() {
   const ctxRef = useRef<AudioContext | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -36,6 +51,7 @@ function Editor() {
   const [theme, setTheme] = useState("");
   const [thr, setThr] = useState(-40);
   const [musicVol, setMusicVol] = useState(0.5);
+  const [selectedSoundIdea, setSelectedSoundIdea] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(0);
   const [exporting, setExporting] = useState(false);
@@ -234,6 +250,44 @@ function Editor() {
               </label>
               <span className="text-xs text-muted-foreground">Volume</span>
               <Slider min={0} max={1} step={0.05} value={[musicVol]} onValueChange={(v) => setMusicVol(v[0] ?? 0.5)} className="w-32" />
+            </div>
+
+            <div className="mt-5 border-t border-border pt-4">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h3 className="font-semibold">Ideias de trilhas para sua história</h3>
+                  <p className="mt-1 text-xs text-muted-foreground">Escolha uma referência de clima para orientar a trilha que deseja usar.</p>
+                </div>
+                <span className="rounded-full bg-secondary px-3 py-1 text-[11px] text-muted-foreground">12 estilos</span>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                {soundIdeas.map((idea) => (
+                  <button
+                    key={idea.title}
+                    type="button"
+                    onClick={() => { setSelectedSoundIdea(idea.title); setMsg(`Referência selecionada: ${idea.title}`); }}
+                    aria-pressed={selectedSoundIdea === idea.title}
+                    className={`rounded-xl border p-3 text-left transition-colors hover:border-primary ${selectedSoundIdea === idea.title ? "border-primary bg-primary/10" : "border-border bg-background"}`}
+                  >
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-ember">{idea.category}</span>
+                      {selectedSoundIdea === idea.title && <span className="text-[10px] font-semibold text-primary">Selecionada ✓</span>}
+                    </div>
+                    <h4 className="text-sm font-semibold">{idea.title}</h4>
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{idea.mood}</p>
+                    <p className="mt-2 text-[11px] leading-relaxed"><span className="font-semibold">Ideal para:</span> {idea.use}</p>
+                  </button>
+                ))}
+              </div>
+              <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+                Estas sugestões são referências de estilo, não arquivos de áudio. Para ouvir a trilha no vídeo, envie um arquivo de música usando “Enviar trilha”.
+              </p>
+              {selectedSoundIdea && (
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-secondary/60 px-3 py-2 text-xs">
+                  <span>Referência escolhida: <strong>{selectedSoundIdea}</strong></span>
+                  <button type="button" onClick={() => setSelectedSoundIdea(null)} className="underline text-muted-foreground">Limpar seleção</button>
+                </div>
+              )}
             </div>
           </Card>
 
