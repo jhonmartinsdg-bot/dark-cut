@@ -90,25 +90,43 @@ function PhoneDemo() {
 }
 
 function Hero3D() {
-  const [m, setM] = useState({ x: 0, y: 0 });
-  const [sy, setSy] = useState(0);
+  const ref = useRef<HTMLElement>(null);
   useEffect(() => {
-    const on = () => setSy(window.scrollY);
-    window.addEventListener("scroll", on, { passive: true });
-    return () => window.removeEventListener("scroll", on);
+    const el = ref.current;
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const fine = window.matchMedia("(pointer: fine)").matches;
+    let tx = 0, ty = 0, x = 0, y = 0, sy = 0, raf = 0, visible = true;
+    const tick = () => {
+      x += (tx - x) * 0.08; y += (ty - y) * 0.08;
+      el.style.setProperty("--mx", x.toFixed(4));
+      el.style.setProperty("--my", y.toFixed(4));
+      el.style.setProperty("--sy", `${sy}px`);
+      raf = Math.abs(tx - x) + Math.abs(ty - y) > 0.0005 ? requestAnimationFrame(tick) : 0;
+    };
+    const kick = () => { if (!raf && visible) raf = requestAnimationFrame(tick); };
+    const onMove = (e: PointerEvent) => { tx = e.clientX / window.innerWidth - 0.5; ty = e.clientY / window.innerHeight - 0.5; kick(); };
+    const onScroll = () => { sy = Math.min(window.scrollY, window.innerHeight); kick(); };
+    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; el.classList.toggle("hero-paused", !visible); });
+    io.observe(el);
+    if (fine) window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => { cancelAnimationFrame(raf); io.disconnect(); window.removeEventListener("pointermove", onMove); window.removeEventListener("scroll", onScroll); };
   }, []);
-  const move = (e: MouseEvent<HTMLElement>) => setM({ x: e.clientX / window.innerWidth - 0.5, y: e.clientY / window.innerHeight - 0.5 });
-  const layer = (d: number, s = 1) => ({ transform: `translate3d(${m.x * -d}px, ${m.y * -d + sy * s}px, 0) scale(1.15)`, transition: "transform .25s ease-out" });
+  const layer = (d: number, s: number) => ({ transform: `translate3d(calc(var(--mx,0) * ${-d}px), calc(var(--my,0) * ${-d}px + var(--sy,0px) * ${s}), 0) scale(1.15)` });
+  const float = (d: number) => ({ transform: `translate3d(calc(var(--mx,0) * ${d}px), calc(var(--my,0) * ${d}px), 0)` });
   return (
-    <section onMouseMove={move} className="relative min-h-screen overflow-hidden" style={{ perspective: 1000 }}>
-      <img src={heroBg} alt="Mansão sombria sob lua vermelha" width={1920} height={1088} className="absolute inset-0 h-full w-full object-cover" style={layer(25, 0.4)} />
-      <div className="pointer-events-none absolute inset-0 animate-fog bg-[radial-gradient(ellipse_at_center,transparent_30%,var(--background)_85%)]" />
+    <section ref={ref} className="hero3d relative min-h-screen overflow-hidden">
+      <picture>
+        <source media="(max-width: 768px)" srcSet={heroBgSm} type="image/webp" />
+        <img src={heroBg} alt="Mansão sombria sob lua vermelha" width={1920} height={1088} fetchPriority="high" decoding="async" className="absolute inset-0 h-full w-full object-cover will-change-transform" style={layer(25, 0.4)} />
+      </picture>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,var(--background)_85%)]" />
       <div className="pointer-events-none absolute inset-0">
         {Array.from({ length: 30 }).map((_, i) => (
-          <span key={i} className="absolute h-1 w-1 animate-ember rounded-full bg-accent" style={{ left: `${(i * 37) % 100}%`, bottom: "-10px", animationDelay: `${(i * 0.43) % 8}s`, animationDuration: `${6 + (i % 5)}s` }} />
+          <span key={i} className={`absolute h-1 w-1 animate-ember rounded-full bg-accent ${i % 2 ? "hidden md:block" : ""}`} style={{ left: `${(i * 37) % 100}%`, bottom: "-10px", animationDelay: `${(i * 0.43) % 8}s`, animationDuration: `${6 + (i % 5)}s` }} />
         ))}
       </div>
-      <img src={figure} alt="" width={768} height={1152} className="pointer-events-none absolute right-[-18%] top-[190px] h-[55vh] w-auto opacity-80 drop-shadow-[0_0_40px_var(--primary)] sm:opacity-60 lg:-bottom-10 lg:right-[-6%] lg:top-auto lg:h-[85vh] lg:opacity-90" style={layer(70, 0.15)} />
+      <img src={figure} alt="" width={640} height={960} decoding="async" className="pointer-events-none absolute right-[-18%] top-[190px] h-[55vh] w-auto opacity-80 will-change-transform drop-shadow-[0_0_40px_var(--primary)] sm:opacity-60 lg:-bottom-10 lg:right-[-6%] lg:top-auto lg:h-[85vh] lg:opacity-90" style={layer(70, 0.15)} />
       <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background to-transparent" />
 
       <div className="relative mx-auto grid min-h-screen max-w-6xl items-center gap-10 px-5 pb-16 pt-24 md:gap-12 md:pt-28 md:grid-cols-2">
