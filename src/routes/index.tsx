@@ -1,5 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, type MouseEvent } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
+import heroBg from "@/assets/hero-bg.jpg";
+import sectionBg from "@/assets/section-bg.jpg";
+import figure from "@/assets/figure.png";
 import { Scissors, Wand2, Captions, Music2, Film, Zap, Check, Star, Play } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
@@ -86,6 +89,58 @@ function PhoneDemo() {
   );
 }
 
+function Hero3D() {
+  const [m, setM] = useState({ x: 0, y: 0 });
+  const [sy, setSy] = useState(0);
+  useEffect(() => {
+    const on = () => setSy(window.scrollY);
+    window.addEventListener("scroll", on, { passive: true });
+    return () => window.removeEventListener("scroll", on);
+  }, []);
+  const move = (e: MouseEvent<HTMLElement>) => setM({ x: e.clientX / window.innerWidth - 0.5, y: e.clientY / window.innerHeight - 0.5 });
+  const layer = (d: number, s = 1) => ({ transform: `translate3d(${m.x * -d}px, ${m.y * -d + sy * s}px, 0) scale(1.15)`, transition: "transform .25s ease-out" });
+  return (
+    <section onMouseMove={move} className="relative min-h-screen overflow-hidden" style={{ perspective: 1000 }}>
+      <img src={heroBg} alt="Mansão sombria sob lua vermelha" width={1920} height={1088} className="absolute inset-0 h-full w-full object-cover" style={layer(25, 0.4)} />
+      <div className="pointer-events-none absolute inset-0 animate-fog bg-[radial-gradient(ellipse_at_center,transparent_30%,var(--background)_85%)]" />
+      <div className="pointer-events-none absolute inset-0">
+        {Array.from({ length: 30 }).map((_, i) => (
+          <span key={i} className="absolute h-1 w-1 animate-ember rounded-full bg-accent" style={{ left: `${(i * 37) % 100}%`, bottom: "-10px", animationDelay: `${(i * 0.43) % 8}s`, animationDuration: `${6 + (i % 5)}s` }} />
+        ))}
+      </div>
+      <img src={figure} alt="" width={768} height={1152} className="pointer-events-none absolute -bottom-10 right-[-6%] hidden h-[85vh] w-auto opacity-90 drop-shadow-2xl lg:block" style={layer(70, 0.15)} />
+      <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background to-transparent" />
+
+      <div className="relative mx-auto grid min-h-screen max-w-6xl items-center gap-12 px-5 pb-16 pt-28 md:grid-cols-2">
+        <div style={{ transform: `translate3d(${m.x * 15}px, ${m.y * 15}px, 0)`, transition: "transform .3s ease-out" }}>
+          <span className="animate-rise rounded-full border border-primary/50 bg-background/50 px-3 py-1 text-xs uppercase tracking-widest text-accent backdrop-blur">Para canais dark · histórias · shorts</span>
+          <h1 className="mt-6 animate-rise font-display text-6xl leading-[0.88] drop-shadow-2xl md:text-8xl" style={{ animationDelay: ".15s" }}>
+            Histórias que <span className="text-ember">arrepiam.</span><br />Vídeos que <span className="text-ember">viralizam.</span>
+          </h1>
+          <p className="mt-6 max-w-lg animate-rise text-lg text-foreground/80" style={{ animationDelay: ".3s" }}>
+            Envie a narração e as imagens. Em 3 minutos a IA entrega um vídeo cinematográfico: silêncios cortados, cenas no ritmo da voz e legendas que prendem até o último segundo.
+          </p>
+          <div className="mt-8 flex animate-rise flex-wrap gap-3" style={{ animationDelay: ".45s" }}>
+            <Link to="/editor" className="inline-flex items-center gap-2 rounded-full bg-ember px-7 py-4 font-bold text-primary-foreground shadow-glow transition hover:scale-105">
+              <Play className="h-5 w-5" /> Criar meu primeiro vídeo
+            </Link>
+            <a href="#planos" className="rounded-full border border-border bg-background/40 px-7 py-4 font-semibold backdrop-blur">Ver planos</a>
+          </div>
+          <div className="mt-6 flex items-center gap-2 text-sm text-foreground/70">
+            <div className="flex text-accent">{Array.from({ length: 5 }).map((_, i) => <Star key={i} className="h-4 w-4 fill-current" />)}</div>
+            +12.000 criadores publicando todos os dias
+          </div>
+        </div>
+        <div className="relative flex justify-center" style={{ transform: `translate3d(${m.x * 40}px, ${m.y * 40}px, 0)`, transition: "transform .3s ease-out" }}>
+          <div className="absolute h-96 w-96 animate-spin3d rounded-full border-2 border-primary/40" style={{ transformStyle: "preserve-3d" }} />
+          <PhoneDemo />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
 function Landing() {
   return (
     <div className="min-h-screen overflow-x-hidden bg-background font-sans text-foreground">
@@ -99,30 +154,14 @@ function Landing() {
         </div>
       </header>
 
-      <section className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 pb-20 pt-32 md:grid-cols-2">
-        <div className="pointer-events-none absolute -left-40 top-10 h-96 w-96 rounded-full bg-primary/30 blur-[120px]" />
-        <div className="relative">
-          <span className="rounded-full border border-border px-3 py-1 text-xs uppercase tracking-widest text-accent">Para canais dark · histórias · shorts</span>
-          <h1 className="mt-6 font-display text-6xl leading-[0.9] md:text-8xl">
-            Do áudio ao <span className="text-ember">vídeo viral</span> em 3 minutos.
-          </h1>
-          <p className="mt-6 max-w-lg text-lg text-muted-foreground">
-            Envie a narração e as imagens. A IA corta os silêncios, sincroniza cada cena no ritmo da voz, anima tudo e coloca legendas que prendem até o último segundo.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link to="/editor" className="inline-flex items-center gap-2 rounded-full bg-ember px-7 py-4 font-bold text-primary-foreground shadow-glow transition hover:scale-105">
-              <Play className="h-5 w-5" /> Criar meu primeiro vídeo
-            </Link>
-            <a href="#planos" className="rounded-full border border-border px-7 py-4 font-semibold">Ver planos</a>
-          </div>
-          <div className="mt-6 flex items-center gap-2 text-sm text-muted-foreground">
-            <div className="flex text-accent">{Array.from({ length: 5 }).map((_, i) => <Star key={i} className="h-4 w-4 fill-current" />)}</div>
-            +12.000 criadores publicando todos os dias
-          </div>
-        </div>
-        <div className="relative flex justify-center">
-          <div className="absolute h-80 w-80 animate-spin3d rounded-full border border-primary/40" style={{ transformStyle: "preserve-3d" }} />
-          <PhoneDemo />
+      <Hero3D />
+
+      <section className="relative overflow-hidden py-28">
+        <img src={sectionBg} alt="" loading="lazy" width={1920} height={1088} className="absolute inset-0 h-full w-full scale-110 object-cover opacity-50" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-background/40 to-background" />
+        <div className="relative mx-auto max-w-4xl px-5 text-center">
+          <h2 className="font-display text-5xl leading-none md:text-7xl">Cada história merece ser <span className="text-ember">sentida.</span></h2>
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">Seu roteiro arrepia. Sua voz prende. Agora o vídeo vai à altura: cortes no ritmo do coração, movimento cinematográfico e legendas que fazem ninguém piscar.</p>
         </div>
       </section>
 
