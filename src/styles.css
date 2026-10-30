@@ -118,3 +118,5 @@
 @utility animate-ember { animation: emberRise 7s linear infinite; box-shadow: 0 0 8px var(--accent); }
 @utility animate-rise { animation: rise .9s cubic-bezier(.2,.8,.2,1) both; }
 @utility animate-fog { animation: fog 8s ease-in-out infinite; }
+.hero-paused * { animation-play-state: paused !important; }
+@media (prefers-reduced-motion: reduce) { .animate-ember, .animate-spin3d, .animate-wave, .animate-floaty { animation: none !important; } }
