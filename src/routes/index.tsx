@@ -67,7 +67,7 @@ function PhoneDemo() {
   const words = ["NINGUÉM", "VOLTOU", "DAQUELA", "CASA..."];
   return (
     <Tilt>
-      <div className="relative mx-auto aspect-[9/16] w-64 overflow-hidden rounded-[2.2rem] border-4 border-border bg-card shadow-glow md:w-72">
+      <div className="relative mx-auto aspect-[9/16] w-52 overflow-hidden rounded-[2.2rem] border-4 border-border bg-card shadow-glow sm:w-64 md:w-72">
         <div className="absolute inset-0 animate-floaty bg-[radial-gradient(circle_at_30%_20%,var(--primary),transparent_55%),radial-gradient(circle_at_70%_80%,var(--primary-glow),transparent_50%)] opacity-40" />
         <div className="absolute inset-x-0 top-1/3 text-center font-display text-6xl leading-none tracking-wide" style={{ transform: "translateZ(60px)" }}>
           <span className="text-ember">A CASA</span>
@@ -108,13 +108,13 @@ function Hero3D() {
           <span key={i} className="absolute h-1 w-1 animate-ember rounded-full bg-accent" style={{ left: `${(i * 37) % 100}%`, bottom: "-10px", animationDelay: `${(i * 0.43) % 8}s`, animationDuration: `${6 + (i % 5)}s` }} />
         ))}
       </div>
-      <img src={figure} alt="" width={768} height={1152} className="pointer-events-none absolute -bottom-10 right-[-6%] hidden h-[85vh] w-auto opacity-90 drop-shadow-2xl lg:block" style={layer(70, 0.15)} />
+      <img src={figure} alt="" width={768} height={1152} className="pointer-events-none absolute right-[-18%] top-[190px] h-[55vh] w-auto opacity-80 drop-shadow-[0_0_40px_var(--primary)] sm:opacity-60 lg:-bottom-10 lg:right-[-6%] lg:top-auto lg:h-[85vh] lg:opacity-90" style={layer(70, 0.15)} />
       <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background to-transparent" />
 
-      <div className="relative mx-auto grid min-h-screen max-w-6xl items-center gap-12 px-5 pb-16 pt-28 md:grid-cols-2">
+      <div className="relative mx-auto grid min-h-screen max-w-6xl items-center gap-10 px-5 pb-16 pt-24 md:gap-12 md:pt-28 md:grid-cols-2">
         <div style={{ transform: `translate3d(${m.x * 15}px, ${m.y * 15}px, 0)`, transition: "transform .3s ease-out" }}>
           <span className="animate-rise rounded-full border border-primary/50 bg-background/50 px-3 py-1 text-xs uppercase tracking-widest text-accent backdrop-blur">Para canais dark · histórias · shorts</span>
-          <h1 className="mt-6 animate-rise font-display text-6xl leading-[0.88] drop-shadow-2xl md:text-8xl" style={{ animationDelay: ".15s" }}>
+          <h1 className="mt-6 animate-rise font-display text-[3.4rem] leading-[0.88] sm:text-7xl drop-shadow-2xl md:text-8xl" style={{ animationDelay: ".15s" }}>
             Histórias que <span className="text-ember">arrepiam.</span><br />Vídeos que <span className="text-ember">viralizam.</span>
           </h1>
           <p className="mt-6 max-w-lg animate-rise text-lg text-foreground/80" style={{ animationDelay: ".3s" }}>
@@ -132,7 +132,7 @@ function Hero3D() {
           </div>
         </div>
         <div className="relative flex justify-center" style={{ transform: `translate3d(${m.x * 40}px, ${m.y * 40}px, 0)`, transition: "transform .3s ease-out" }}>
-          <div className="absolute h-96 w-96 animate-spin3d rounded-full border-2 border-primary/40" style={{ transformStyle: "preserve-3d" }} />
+          <div className="absolute h-72 w-72 md:h-96 md:w-96 animate-spin3d rounded-full border-2 border-primary/40" style={{ transformStyle: "preserve-3d" }} />
           <PhoneDemo />
         </div>
       </div>
