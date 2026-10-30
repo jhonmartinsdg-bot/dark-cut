@@ -108,7 +108,7 @@ function Hero3D() {
           <span key={i} className="absolute h-1 w-1 animate-ember rounded-full bg-accent" style={{ left: `${(i * 37) % 100}%`, bottom: "-10px", animationDelay: `${(i * 0.43) % 8}s`, animationDuration: `${6 + (i % 5)}s` }} />
         ))}
       </div>
-      <img src={figure} alt="" width={768} height={1152} className="pointer-events-none absolute right-[-18%] top-[150px] h-[55vh] w-auto opacity-70 drop-shadow-2xl sm:opacity-60 lg:-bottom-10 lg:right-[-6%] lg:top-auto lg:h-[85vh] lg:opacity-90" style={layer(70, 0.15)} />
+      <img src={figure} alt="" width={768} height={1152} className="pointer-events-none absolute right-[-18%] top-[190px] h-[55vh] w-auto opacity-80 drop-shadow-[0_0_40px_var(--primary)] sm:opacity-60 lg:-bottom-10 lg:right-[-6%] lg:top-auto lg:h-[85vh] lg:opacity-90" style={layer(70, 0.15)} />
       <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background to-transparent" />
 
       <div className="relative mx-auto grid min-h-screen max-w-6xl items-center gap-10 px-5 pb-16 pt-24 md:gap-12 md:pt-28 md:grid-cols-2">
