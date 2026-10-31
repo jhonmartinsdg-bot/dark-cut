@@ -9,7 +9,7 @@ type Mode = "login" | "signup" | "forgot";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (s: Record<string, unknown>): { redirect?: string } => {
-    const r = typeof s.redirect === "string" && s.redirect.startsWith("/") && !s.redirect.startsWith("//") ? s.redirect : undefined;
+    const v = s["redirect"]; const r = typeof v === "string" && v.startsWith("/") && !v.startsWith("//") ? v : undefined;
     return r ? { redirect: r } : {};
   },
   head: () => ({
