@@ -4,7 +4,7 @@ import { Upload, Scissors, Play, Pause, Download, ImagePlus, Music2, Sparkles } 
 import { Slider } from "@/components/ui/slider";
 import { alignWords, buildScenes, cutSilences, detectSpeech, peaks, type Scene, type Segment, type Word } from "@/lib/audio-engine";
 
-export const Route = createFileRoute("/editor")({
+export const Route = createFileRoute("/_authenticated/editor")({
   head: () => ({
     meta: [
       { title: "Editor — DarkCut AI" },
