@@ -19,6 +19,13 @@ export const Route = createFileRoute("/editor")({
 });
 
 const W = 720, H = 1280;
+type CaptionStyle = "impacto" | "neon" | "cinematic" | "minimal";
+const captionStyles: { value: CaptionStyle; label: string; description: string }[] = [
+  { value: "impacto", label: "Impacto", description: "Bloco forte com palavra ativa em destaque" },
+  { value: "neon", label: "Neon", description: "Brilho moderno e contorno" },
+  { value: "cinematic", label: "Cinemático", description: "Tipografia elegante em tom dourado" },
+  { value: "minimal", label: "Minimalista", description: "Legenda limpa e sofisticada" },
+];
 
 function themeScript(t: string) {
   return `Você já ouviu falar sobre ${t}? Poucas pessoas conhecem essa história. Tudo começou numa noite fria, quando ninguém esperava. O que aconteceu depois mudou tudo para sempre. E até hoje, ninguém conseguiu explicar. Fique até o final, porque a verdade é mais assustadora do que você imagina.`;
@@ -47,6 +54,10 @@ function Editor() {
   const [segs, setSegs] = useState<Segment[]>([]);
   const [music, setMusic] = useState<AudioBuffer | null>(null);
   const [imgs, setImgs] = useState<HTMLImageElement[]>([]);
+  const [dragImageIndex, setDragImageIndex] = useState<number | null>(null);
+  const [sceneImageOverrides, setSceneImageOverrides] = useState<Record<number, number>>({});
+  const [captionStyle, setCaptionStyle] = useState<CaptionStyle>("impacto");
+  const [coverText, setCoverText] = useState("");
   const [script, setScript] = useState("");
   const [theme, setTheme] = useState("");
   const [thr, setThr] = useState(-40);
@@ -78,16 +89,24 @@ function Editor() {
   async function loadImgs(fs: FileList) {
     const list = await Promise.all([...fs].map((f) => new Promise<HTMLImageElement>((res) => { const i = new Image(); i.onload = () => res(i); i.src = URL.createObjectURL(f); })));
     setImgs((p) => [...p, ...list]);
+    setMsg(`${list.length} imagem(ns) adicionada(s). Arraste para reorganizar.`);
+  }
+  function moveImage(from: number, to: number) {
+    if (from === to || from < 0 || to < 0 || from >= imgs.length || to >= imgs.length) return;
+    setImgs((current) => { const next = [...current]; const item = next.splice(from, 1)[0]; if (item) next.splice(to, 0, item); return next; });
+    setSceneImageOverrides({}); setMsg(`Imagem movida para posição ${to + 1}.`);
   }
 
+  const autoCoverTitle = coverText.trim() || theme.trim() || script.trim().split(/[.!?]/)[0]?.trim() || "UMA HISTÓRIA QUE VOCÊ NÃO VAI ESQUECER";
   // Render a frame at time t
   function draw(t: number) {
     const c = canvasRef.current?.getContext("2d");
     if (!c) return;
     c.fillStyle = "#0b0a10"; c.fillRect(0, 0, W, H);
     const idx = scenes.findIndex((s) => t >= s.start && t < s.end);
-    const drawScene = (s: Scene, alpha: number) => {
-      const img = imgs[s.img]; if (!img) return;
+    const drawScene = (s: Scene, alpha: number, sceneIndex: number) => {
+      const assignedImage = sceneImageOverrides[sceneIndex] ?? s.img;
+      const img = imgs[assignedImage]; if (!img) return;
       const p = Math.min(1, Math.max(0, (t - s.start) / (s.end - s.start)));
       const base = Math.max(W / img.width, H / img.height);
       const z = s.motion === 1 ? 1.25 - 0.2 * p : 1.05 + 0.2 * p;
@@ -99,10 +118,22 @@ function Editor() {
     };
     if (idx >= 0) {
       const s = scenes[idx]!;
-      drawScene(s, 1);
+      drawScene(s, 1, idx);
       const next = scenes[idx + 1];
       const tr = 0.4;
-      if (next && s.end - t < tr) drawScene(next, 1 - (s.end - t) / tr);
+      if (next && s.end - t < tr) drawScene(next, 1 - (s.end - t) / tr, idx + 1);
+    }
+    if (t < 2.6 && imgs.length > 0) {
+      const cover = c.createLinearGradient(0, 0, W, H);
+      cover.addColorStop(0, "rgba(5,5,10,.35)"); cover.addColorStop(.55, "rgba(5,5,10,.45)"); cover.addColorStop(1, "rgba(5,5,10,.96)");
+      c.fillStyle = cover; c.fillRect(0, 0, W, H);
+      c.textAlign = "center"; c.fillStyle = "#ff6a3d"; c.font = "bold 22px Arial, sans-serif";
+      c.fillText("DARKCUT  •  HISTÓRIA ORIGINAL", W / 2, H * .22);
+      c.font = "900 68px Impact, Arial Black, sans-serif"; c.lineWidth = 7; c.strokeStyle = "rgba(0,0,0,.8)"; c.lineJoin = "round";
+      c.strokeText(autoCoverTitle.toUpperCase(), W / 2, H * .46, W * .86);
+      c.fillStyle = "#fff1e6"; c.fillText(autoCoverTitle.toUpperCase(), W / 2, H * .46, W * .86);
+      c.fillStyle = "#ff6a3d"; c.font = "bold 24px Arial, sans-serif"; c.fillText("ASSISTA ATÉ O FINAL", W / 2, H * .70);
+      c.textAlign = "left"; return;
     }
     const g = c.createLinearGradient(0, H * 0.55, 0, H);
     g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,0,0,.75)");
@@ -112,7 +143,9 @@ function Editor() {
     if (wi >= 0) {
       const g0 = Math.floor(wi / 3) * 3;
       const group = words.slice(g0, g0 + 3);
-      c.font = "bold 76px 'Bebas Neue', Impact, sans-serif";
+      if (captionStyle === "cinematic") c.font = "bold 68px Georgia, Times New Roman, serif";
+      else if (captionStyle === "minimal") c.font = "600 58px Arial, sans-serif";
+      else c.font = "bold 76px Impact, Arial Black, sans-serif";
       c.textBaseline = "middle";
       const sp = 18;
       const widths: number[] = group.map((w) => c.measureText(w.text.toUpperCase()).width);
@@ -121,15 +154,22 @@ function Editor() {
       group.forEach((w, i) => {
         const active = g0 + i === wi;
         const txt = w.text.toUpperCase();
-        if (active) { c.fillStyle = "#ef4a2b"; c.fillRect(x - 8, y - 44, widths[i]! + 16, 88); }
-        c.lineWidth = 8; c.strokeStyle = "#000"; c.strokeText(txt, x, y);
-        c.fillStyle = active ? "#fff" : "#f5e9d6"; c.fillText(txt, x, y);
+        if (captionStyle === "impacto" && active) { c.fillStyle = "#ef4a2b"; c.fillRect(x - 8, y - 44, widths[i]! + 16, 88); }
+        if (captionStyle === "neon") {
+          c.shadowColor = active ? "#22d3ee" : "#f97316"; c.shadowBlur = 20; c.lineWidth = 5; c.strokeStyle = "#071018"; c.strokeText(txt, x, y);
+          c.fillStyle = active ? "#67e8f9" : "#fff7ed"; c.fillText(txt, x, y); c.shadowBlur = 0;
+        } else if (captionStyle === "cinematic") {
+          c.lineWidth = 4; c.strokeStyle = "rgba(0,0,0,.8)"; c.strokeText(txt, x, y); c.fillStyle = active ? "#fbbf24" : "#fff8e7"; c.fillText(txt, x, y);
+        } else {
+          c.shadowColor = "rgba(0,0,0,.95)"; c.shadowBlur = 12; c.lineWidth = 3; c.strokeStyle = "#000"; c.strokeText(txt, x, y);
+          c.fillStyle = "#fff"; c.fillText(txt, x, y); c.shadowBlur = 0;
+        }
         x += widths[i]! + sp;
       });
     }
   }
 
-  useEffect(() => { draw(time); }, [time, scenes, words, imgs]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { draw(time); }, [time, scenes, words, imgs, sceneImageOverrides, captionStyle, coverText, theme, script]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function startAudio(dest?: AudioNode) {
     const a = ac();
@@ -240,7 +280,54 @@ function Editor() {
             <label className={fileBtn}><ImagePlus className="h-4 w-4" /> Adicionar imagens
               <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => e.target.files && loadImgs(e.target.files)} />
             </label>
-            {imgs.length > 0 && <button onClick={() => setImgs([])} className="mt-2 text-xs text-muted-foreground underline">Limpar imagens</button>}
+            {imgs.length > 0 && (
+              <div className="mt-4">
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-sm font-semibold">Biblioteca de imagens <span className="text-muted-foreground">({imgs.length})</span></h3>
+                  <span className="text-xs text-muted-foreground">Arraste para reorganizar</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+                  {imgs.map((img, i) => (
+                    <div key={img.src} draggable
+                      onDragStart={() => setDragImageIndex(i)}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => { e.preventDefault(); if (dragImageIndex !== null) moveImage(dragImageIndex, i); setDragImageIndex(null); }}
+                      onDragEnd={() => setDragImageIndex(null)}
+                      className={`overflow-hidden rounded-xl border bg-background ${dragImageIndex === i ? "border-primary opacity-50" : "border-border hover:border-primary"}`}>
+                      <div className="relative aspect-[9/12] overflow-hidden bg-secondary">
+                        <img src={img.src} alt={`Imagem ${i + 1}`} className="h-full w-full object-cover" />
+                        <span className="absolute left-2 top-2 rounded-md bg-black/75 px-2 py-1 text-[10px] font-bold text-white">CENA {String(i + 1).padStart(2, "0")}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-1 p-2">
+                        <span className="text-xs text-muted-foreground">Posição {i + 1}</span>
+                        <div className="flex gap-1">
+                          <button type="button" disabled={i === 0} onClick={() => moveImage(i, i - 1)} className="rounded bg-secondary px-2 py-1 text-xs disabled:opacity-30" aria-label="Mover para posição anterior">←</button>
+                          <button type="button" disabled={i === imgs.length - 1} onClick={() => moveImage(i, i + 1)} className="rounded bg-secondary px-2 py-1 text-xs disabled:opacity-30" aria-label="Mover para próxima posição">→</button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 rounded-xl border border-border bg-background p-3">
+                  <label className="mb-1 block text-xs font-semibold">Título da capa automática</label>
+                  <input value={coverText} onChange={(e) => setCoverText(e.target.value)} placeholder={theme || "Digite uma chamada impactante"} className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm" />
+                  <p className="mt-1 text-[11px] text-muted-foreground">A abertura do vídeo recebe tratamento cinematográfico: imagem, contraste, título e chamada. Se deixar vazio, usamos o tema ou o início do roteiro.</p>
+                  <div className="mt-3">
+                    <label className="mb-2 block text-xs font-semibold">Estilo das legendas</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {captionStyles.map((style) => (
+                        <button key={style.value} type="button" onClick={() => setCaptionStyle(style.value)}
+                          className={`rounded-lg border p-2 text-left ${captionStyle === style.value ? "border-primary bg-primary/10" : "border-border hover:border-primary"}`}>
+                          <span className="block text-xs font-bold">{style.label}{captionStyle === style.value ? " ✓" : ""}</span>
+                          <span className="mt-1 block text-[10px] leading-snug text-muted-foreground">{style.description}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <button onClick={() => { setImgs([]); setSceneImageOverrides({}); }} className="mt-3 text-xs text-muted-foreground underline">Limpar todas as imagens</button>
+              </div>
+            )}}
           </Card>
 
           <Card n={4} title="Trilha sonora (ducking automático)">
@@ -294,13 +381,31 @@ function Editor() {
           <div className="rounded-2xl border border-border bg-card p-5">
             <h2 className="mb-3 font-bold">Timeline de cenas</h2>
             {scenes.length === 0 ? <p className="text-sm text-muted-foreground">Envie áudio e imagens para montar a timeline.</p> : (
-              <div className="flex h-24 gap-1 overflow-hidden rounded-lg">
-                {scenes.map((s, i) => (
-                  <button key={i} onClick={() => setTime(s.start)} className={`relative overflow-hidden rounded border-2 ${time >= s.start && time < s.end ? "border-primary" : "border-transparent"}`} style={{ flex: s.end - s.start }}>
-                    <img src={imgs[s.img]?.src} className="h-full w-full object-cover" alt="" />
-                    <span className="absolute bottom-0 left-0 bg-background/80 px-1 text-[10px]">{(s.end - s.start).toFixed(1)}s</span>
-                  </button>
-                ))}
+              <div className="space-y-3">
+                <div className="flex h-24 gap-1 overflow-hidden rounded-lg">
+                  {scenes.map((s, i) => {
+                    const imageIndex = sceneImageOverrides[i] ?? s.img;
+                    return <button key={i} onClick={() => setTime(s.start)} className={`relative overflow-hidden rounded border-2 ${time >= s.start && time < s.end ? "border-primary" : "border-transparent"}`} style={{ flex: s.end - s.start }}>
+                      <img src={imgs[imageIndex]?.src} className="h-full w-full object-cover" alt={`Cena ${i + 1}`} />
+                      <span className="absolute bottom-0 left-0 bg-background/80 px-1 text-[10px]">{(s.end - s.start).toFixed(1)}s</span>
+                    </button>;
+                  })}
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {scenes.map((s, i) => {
+                    const imageIndex = sceneImageOverrides[i] ?? s.img;
+                    return <div key={i} className="flex items-center gap-3 rounded-lg border border-border bg-background p-2">
+                      <img src={imgs[imageIndex]?.src} alt="" className="h-12 w-10 rounded object-cover" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-semibold">Cena {String(i + 1).padStart(2, "0")} <span className="font-normal text-muted-foreground">• {(s.end - s.start).toFixed(1)}s</span></p>
+                        <label className="mt-1 block text-[10px] text-muted-foreground">Imagem desta cena</label>
+                      </div>
+                      <select value={imageIndex} onChange={(e) => setSceneImageOverrides((prev) => ({ ...prev, [i]: Number(e.target.value) }))} className="max-w-28 rounded-md border border-input bg-card px-2 py-1 text-xs">
+                        {imgs.map((_, imageNumber) => <option key={imageNumber} value={imageNumber}>Imagem {imageNumber + 1}</option>)}
+                      </select>
+                    </div>;
+                  })}
+                </div>
               </div>
             )}
           </div>
