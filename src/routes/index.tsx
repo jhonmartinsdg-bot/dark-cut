@@ -168,7 +168,7 @@ function Landing() {
           <nav className="hidden gap-6 text-sm text-muted-foreground md:flex">
             <a href="#recursos">Recursos</a><a href="#planos">Planos</a><a href="#faq">FAQ</a>
           </nav>
-          <Link to="/editor" className="rounded-full bg-ember px-5 py-2 text-sm font-bold text-primary-foreground">Abrir editor</Link>
+          <NavAuth />
         </div>
       </header>
 
