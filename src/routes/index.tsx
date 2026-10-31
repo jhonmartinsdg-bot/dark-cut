@@ -130,7 +130,7 @@ function Hero3D() {
       <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background to-transparent" />
 
       <div className="relative mx-auto grid min-h-screen max-w-6xl items-center gap-10 px-5 pb-16 pt-24 md:gap-12 md:pt-28 md:grid-cols-2">
-        <div style={{ transform: `translate3d(${m.x * 15}px, ${m.y * 15}px, 0)`, transition: "transform .3s ease-out" }}>
+        <div style={float(15)}>
           <span className="animate-rise rounded-full border border-primary/50 bg-background/50 px-3 py-1 text-xs uppercase tracking-widest text-accent backdrop-blur">Para canais dark · histórias · shorts</span>
           <h1 className="mt-6 animate-rise font-display text-[3.4rem] leading-[0.88] sm:text-7xl drop-shadow-2xl md:text-8xl" style={{ animationDelay: ".15s" }}>
             Histórias que <span className="text-ember">arrepiam.</span><br />Vídeos que <span className="text-ember">viralizam.</span>
@@ -149,7 +149,7 @@ function Hero3D() {
             +12.000 criadores publicando todos os dias
           </div>
         </div>
-        <div className="relative flex justify-center" style={{ transform: `translate3d(${m.x * 40}px, ${m.y * 40}px, 0)`, transition: "transform .3s ease-out" }}>
+        <div className="relative flex justify-center" style={float(40)}>
           <div className="absolute h-72 w-72 md:h-96 md:w-96 animate-spin3d rounded-full border-2 border-primary/40" style={{ transformStyle: "preserve-3d" }} />
           <PhoneDemo />
         </div>
