@@ -106,5 +106,6 @@ function translate(m: string) {
   if (/invalid login/i.test(m)) return "E-mail ou senha incorretos.";
   if (/not confirmed/i.test(m)) return "Confirme seu e-mail antes de entrar.";
   if (/already registered/i.test(m)) return "Este e-mail já tem conta.";
+  if (/not allowed/i.test(m)) return "Use um e-mail real, que possa receber mensagens.";
   return m;
 }
