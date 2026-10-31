@@ -1,10 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Upload, Scissors, Play, Pause, Download, ImagePlus, Music2, Sparkles } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { alignWords, buildScenes, cutSilences, detectSpeech, peaks, type Scene, type Segment, type Word } from "@/lib/audio-engine";
 
-export const Route = createFileRoute("/editor")({
+export const Route = createFileRoute("/_authenticated/editor")({
   head: () => ({
     meta: [
       { title: "Editor — DarkCut AI" },
@@ -47,6 +48,7 @@ const soundIdeas = [
 ] as const;
 
 function Editor() {
+  const navigate = useNavigate();
   const ctxRef = useRef<AudioContext | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [orig, setOrig] = useState<AudioBuffer | null>(null);
@@ -247,7 +249,7 @@ function Editor() {
     <div className="min-h-screen bg-background font-sans text-foreground">
       <header className="flex items-center justify-between border-b border-border px-5 py-3">
         <Link to="/" className="font-display text-3xl tracking-wider">DARK<span className="text-ember">CUT</span></Link>
-        <span className="text-sm text-muted-foreground">{msg}</span>
+        <div className="flex items-center gap-4"><span className="hidden text-sm text-muted-foreground md:inline">{msg}</span><button onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/", replace: true }); }} className="rounded-full border border-border px-4 py-1.5 text-sm">Sair</button></div>
       </header>
       <div className="grid gap-6 p-5 lg:grid-cols-[1fr_auto]">
         <div className="space-y-4">

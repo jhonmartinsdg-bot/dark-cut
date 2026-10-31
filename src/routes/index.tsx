@@ -1,13 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState, type MouseEvent } from "react";
-import heroBg from "@/assets/hero-bg.jpg";
-import sectionBg from "@/assets/section-bg.jpg";
-import figure from "@/assets/figure.png";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
+import heroBg from "@/assets/hero-bg.webp";
+import heroBgSm from "@/assets/hero-bg-sm.webp";
+import sectionBg from "@/assets/section-bg.webp";
+import figure from "@/assets/figure.webp";
+import { useSessionUser } from "@/hooks/use-session";
+import { supabase } from "@/integrations/supabase/client";
 import { Scissors, Wand2, Captions, Music2, Film, Zap, Check, Star, Play } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export const Route = createFileRoute("/")({
   head: () => ({
+    links: [{ rel: "preload", as: "image", href: heroBg, fetchPriority: "high" }],
     meta: [
       { title: "DarkCut AI — Vídeos virais para canais dark em minutos" },
       { name: "description", content: "Envie a narração e as imagens: a IA corta silêncios, sincroniza cenas, anima e legenda palavra por palavra." },
@@ -106,7 +110,7 @@ function Hero3D() {
     const kick = () => { if (!raf && visible) raf = requestAnimationFrame(tick); };
     const onMove = (e: PointerEvent) => { tx = e.clientX / window.innerWidth - 0.5; ty = e.clientY / window.innerHeight - 0.5; kick(); };
     const onScroll = () => { sy = Math.min(window.scrollY, window.innerHeight); kick(); };
-    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; el.classList.toggle("hero-paused", !visible); });
+    const io = new IntersectionObserver(([e]) => { visible = !!e?.isIntersecting; el.classList.toggle("hero-paused", !visible); });
     io.observe(el);
     if (fine) window.addEventListener("pointermove", onMove, { passive: true });
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -130,7 +134,7 @@ function Hero3D() {
       <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background to-transparent" />
 
       <div className="relative mx-auto grid min-h-screen max-w-6xl items-center gap-10 px-5 pb-16 pt-24 md:gap-12 md:pt-28 md:grid-cols-2">
-        <div style={{ transform: `translate3d(${m.x * 15}px, ${m.y * 15}px, 0)`, transition: "transform .3s ease-out" }}>
+        <div style={float(15)}>
           <span className="animate-rise rounded-full border border-primary/50 bg-background/50 px-3 py-1 text-xs uppercase tracking-widest text-accent backdrop-blur">Para canais dark · histórias · shorts</span>
           <h1 className="mt-6 animate-rise font-display text-[3.4rem] leading-[0.88] sm:text-7xl drop-shadow-2xl md:text-8xl" style={{ animationDelay: ".15s" }}>
             Histórias que <span className="text-ember">arrepiam.</span><br />Vídeos que <span className="text-ember">viralizam.</span>
@@ -149,7 +153,7 @@ function Hero3D() {
             +12.000 criadores publicando todos os dias
           </div>
         </div>
-        <div className="relative flex justify-center" style={{ transform: `translate3d(${m.x * 40}px, ${m.y * 40}px, 0)`, transition: "transform .3s ease-out" }}>
+        <div className="relative flex justify-center" style={float(40)}>
           <div className="absolute h-72 w-72 md:h-96 md:w-96 animate-spin3d rounded-full border-2 border-primary/40" style={{ transformStyle: "preserve-3d" }} />
           <PhoneDemo />
         </div>
@@ -168,14 +172,14 @@ function Landing() {
           <nav className="hidden gap-6 text-sm text-muted-foreground md:flex">
             <a href="#recursos">Recursos</a><a href="#planos">Planos</a><a href="#faq">FAQ</a>
           </nav>
-          <Link to="/editor" className="rounded-full bg-ember px-5 py-2 text-sm font-bold text-primary-foreground">Abrir editor</Link>
+          <NavAuth />
         </div>
       </header>
 
       <Hero3D />
 
       <section className="relative overflow-hidden py-28">
-        <img src={sectionBg} alt="" loading="lazy" width={1920} height={1088} className="absolute inset-0 h-full w-full scale-110 object-cover opacity-50" />
+        <img src={sectionBg} alt="" loading="lazy" decoding="async" width={1920} height={1088} className="absolute inset-0 h-full w-full scale-110 object-cover opacity-50" />
         <div className="absolute inset-0 bg-gradient-to-b from-background via-background/40 to-background" />
         <div className="relative mx-auto max-w-4xl px-5 text-center">
           <h2 className="font-display text-5xl leading-none md:text-7xl">Cada história merece ser <span className="text-ember">sentida.</span></h2>
@@ -260,6 +264,25 @@ function Landing() {
         <Link to="/editor" className="mt-8 inline-block rounded-full bg-ember px-10 py-5 text-lg font-bold text-primary-foreground shadow-glow">Abrir o editor</Link>
       </section>
       <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">© 2026 DarkCut AI</footer>
+    </div>
+  );
+}
+
+function NavAuth() {
+  const { user, ready } = useSessionUser();
+  if (!ready) return <span className="h-9 w-28" />;
+  if (!user) {
+    return (
+      <div className="flex shrink-0 items-center gap-3">
+        <Link to="/auth" className="hidden text-sm font-semibold sm:inline">Entrar</Link>
+        <Link to="/auth" className="rounded-full bg-ember px-4 py-2 text-sm font-bold text-primary-foreground sm:px-5">Começar grátis</Link>
+      </div>
+    );
+  }
+  return (
+    <div className="flex shrink-0 items-center gap-3">
+      <button onClick={() => supabase.auth.signOut()} className="hidden text-sm text-muted-foreground sm:inline">Sair</button>
+      <Link to="/editor" className="rounded-full bg-ember px-4 py-2 text-sm font-bold text-primary-foreground sm:px-5">Abrir editor</Link>
     </div>
   );
 }

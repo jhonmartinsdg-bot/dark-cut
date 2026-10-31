@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+- Signed-in-only pages live under src/routes/_authenticated/ (client-side gate redirects to /auth?redirect=…); why: one place protects the editor and future private pages.
+- Sales-page hero parallax writes CSS variables from one rAF loop instead of React state; why: avoids re-rendering on every mouse/scroll event.
