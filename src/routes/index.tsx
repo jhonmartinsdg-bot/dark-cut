@@ -1,13 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState, type MouseEvent } from "react";
-import heroBg from "@/assets/hero-bg.jpg";
-import sectionBg from "@/assets/section-bg.jpg";
-import figure from "@/assets/figure.png";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
+import heroBg from "@/assets/hero-bg.webp";
+import heroBgSm from "@/assets/hero-bg-sm.webp";
+import sectionBg from "@/assets/section-bg.webp";
+import figure from "@/assets/figure.webp";
+import { useSessionUser } from "@/hooks/use-session";
+import { supabase } from "@/integrations/supabase/client";
 import { Scissors, Wand2, Captions, Music2, Film, Zap, Check, Star, Play } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export const Route = createFileRoute("/")({
   head: () => ({
+    links: [{ rel: "preload", as: "image", href: heroBg, fetchPriority: "high" }],
     meta: [
       { title: "DarkCut AI — Vídeos virais para canais dark em minutos" },
       { name: "description", content: "Envie a narração e as imagens: a IA corta silêncios, sincroniza cenas, anima e legenda palavra por palavra." },
@@ -106,7 +110,7 @@ function Hero3D() {
     const kick = () => { if (!raf && visible) raf = requestAnimationFrame(tick); };
     const onMove = (e: PointerEvent) => { tx = e.clientX / window.innerWidth - 0.5; ty = e.clientY / window.innerHeight - 0.5; kick(); };
     const onScroll = () => { sy = Math.min(window.scrollY, window.innerHeight); kick(); };
-    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; el.classList.toggle("hero-paused", !visible); });
+    const io = new IntersectionObserver(([e]) => { visible = !!e?.isIntersecting; el.classList.toggle("hero-paused", !visible); });
     io.observe(el);
     if (fine) window.addEventListener("pointermove", onMove, { passive: true });
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -175,7 +179,7 @@ function Landing() {
       <Hero3D />
 
       <section className="relative overflow-hidden py-28">
-        <img src={sectionBg} alt="" loading="lazy" width={1920} height={1088} className="absolute inset-0 h-full w-full scale-110 object-cover opacity-50" />
+        <img src={sectionBg} alt="" loading="lazy" decoding="async" width={1920} height={1088} className="absolute inset-0 h-full w-full scale-110 object-cover opacity-50" />
         <div className="absolute inset-0 bg-gradient-to-b from-background via-background/40 to-background" />
         <div className="relative mx-auto max-w-4xl px-5 text-center">
           <h2 className="font-display text-5xl leading-none md:text-7xl">Cada história merece ser <span className="text-ember">sentida.</span></h2>
@@ -260,6 +264,25 @@ function Landing() {
         <Link to="/editor" className="mt-8 inline-block rounded-full bg-ember px-10 py-5 text-lg font-bold text-primary-foreground shadow-glow">Abrir o editor</Link>
       </section>
       <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">© 2026 DarkCut AI</footer>
+    </div>
+  );
+}
+
+function NavAuth() {
+  const { user, ready } = useSessionUser();
+  if (!ready) return <span className="h-9 w-28" />;
+  if (!user) {
+    return (
+      <div className="flex shrink-0 items-center gap-3">
+        <Link to="/auth" className="hidden text-sm font-semibold sm:inline">Entrar</Link>
+        <Link to="/auth" className="rounded-full bg-ember px-4 py-2 text-sm font-bold text-primary-foreground sm:px-5">Começar grátis</Link>
+      </div>
+    );
+  }
+  return (
+    <div className="flex shrink-0 items-center gap-3">
+      <button onClick={() => supabase.auth.signOut()} className="hidden text-sm text-muted-foreground sm:inline">Sair</button>
+      <Link to="/editor" className="rounded-full bg-ember px-4 py-2 text-sm font-bold text-primary-foreground sm:px-5">Abrir editor</Link>
     </div>
   );
 }

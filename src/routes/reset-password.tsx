@@ -25,7 +25,7 @@ function ResetPassword() {
     e.preventDefault(); setBusy(true);
     const { error } = await supabase.auth.updateUser({ password: pw });
     setBusy(false);
-    if (error) return toast.error("Link expirado ou inválido. Peça um novo.");
+    if (error) { toast.error("Link expirado ou inválido. Peça um novo."); return; }
     toast.success("Senha atualizada!");
     navigate({ to: "/editor" });
   }
