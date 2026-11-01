@@ -4,6 +4,7 @@ import heroBg from "@/assets/hero-bg.webp";
 import heroBgSm from "@/assets/hero-bg-sm.webp";
 import sectionBg from "@/assets/section-bg.webp";
 import figure from "@/assets/figure.webp";
+import darkCut from "@/assets/dark_cut.png.asset.json";
 import { useSessionUser } from "@/hooks/use-session";
 import { supabase } from "@/integrations/supabase/client";
 import { Scissors, Wand2, Captions, Music2, Film, Zap, Check, Star, Play } from "lucide-react";
@@ -68,26 +69,10 @@ function Tilt({ children }: { children: React.ReactNode }) {
 }
 
 function PhoneDemo() {
-  const words = ["NINGUÉM", "VOLTOU", "DAQUELA", "CASA..."];
   return (
     <Tilt>
       <div className="relative mx-auto aspect-[9/16] w-52 overflow-hidden rounded-[2.2rem] border-4 border-border bg-card shadow-glow sm:w-64 md:w-72">
-        <div className="absolute inset-0 animate-floaty bg-[radial-gradient(circle_at_30%_20%,var(--primary),transparent_55%),radial-gradient(circle_at_70%_80%,var(--primary-glow),transparent_50%)] opacity-40" />
-        <div className="absolute inset-x-0 top-1/3 text-center font-display text-6xl leading-none tracking-wide" style={{ transform: "translateZ(60px)" }}>
-          <span className="text-ember">A CASA</span>
-          <br />
-          <span className="text-foreground">ABANDONADA</span>
-        </div>
-        <div className="absolute inset-x-4 bottom-24 flex flex-wrap justify-center gap-2 font-display text-3xl" style={{ transform: "translateZ(80px)" }}>
-          {words.map((w, i) => (
-            <span key={w} className={i === 1 ? "rounded bg-primary px-1 text-primary-foreground" : ""}>{w}</span>
-          ))}
-        </div>
-        <div className="absolute inset-x-4 bottom-6 flex h-10 items-end gap-1">
-          {Array.from({ length: 28 }).map((_, i) => (
-            <div key={i} className="flex-1 origin-bottom animate-wave rounded bg-ember" style={{ height: "100%", animationDelay: `${(i * 70) % 900}ms` }} />
-          ))}
-        </div>
+        <img src={darkCut.url} alt="Demonstração do editor DarkCut: vídeo A Casa Abandonada" className="h-full w-full object-cover" />
       </div>
     </Tilt>
   );
