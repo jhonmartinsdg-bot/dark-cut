@@ -70,15 +70,15 @@ function AuthPage() {
 
   const title = mode === "login" ? "Bem-vindo de volta" : mode === "signup" ? "Crie sua conta" : "Recuperar senha";
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-5 font-sans text-foreground">
+    <div className="flex min-h-[100dvh] items-start justify-center overflow-y-auto bg-background px-5 py-8 font-sans text-foreground sm:items-center sm:py-5">
       <div className="w-full max-w-sm">
         <Link to="/" className="block text-center font-display text-4xl tracking-wider">DARK<span className="text-ember">CUT</span></Link>
         <div className="mt-6 rounded-3xl border border-border bg-card p-7 shadow-glow">
           <h1 className="font-display text-4xl">{title}</h1>
           {notice ? <p className="mt-4 rounded-xl bg-secondary p-3 text-sm">{notice}</p> : null}
           <form onSubmit={submit} className="mt-5 space-y-3">
-            <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" className="w-full rounded-xl border border-input bg-background px-4 py-3" />
-            {mode !== "forgot" && <input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Senha" className="w-full rounded-xl border border-input bg-background px-4 py-3" />}
+            <input type="email" name="email" required value={email} onChange={(e) => setEmail(e.currentTarget.value)} placeholder="seu@email.com" autoComplete="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} inputMode="email" enterKeyHint="next" className="block w-full min-w-0 touch-manipulation rounded-xl border border-input bg-background px-4 py-3 text-base leading-normal outline-none focus:ring-2 focus:ring-primary" />
+            {mode !== "forgot" && <input type="password" name="password" required minLength={6} value={password} onChange={(e) => setPassword(e.currentTarget.value)} placeholder="Senha" autoComplete={mode === "login" ? "current-password" : "new-password"} enterKeyHint="go" className="block w-full min-w-0 touch-manipulation rounded-xl border border-input bg-background px-4 py-3 text-base leading-normal outline-none focus:ring-2 focus:ring-primary" />}
             <button disabled={busy} className="w-full rounded-full bg-ember py-3 font-bold text-primary-foreground disabled:opacity-50">
               {busy ? "Aguarde..." : mode === "login" ? "Entrar" : mode === "signup" ? "Criar conta" : "Enviar link"}
             </button>
