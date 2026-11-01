@@ -30,6 +30,7 @@ function AuthPage() {
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const passwordStrength = getPasswordStrength(password);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
 
@@ -78,7 +79,19 @@ function AuthPage() {
           {notice ? <p className="mt-4 rounded-xl bg-secondary p-3 text-sm">{notice}</p> : null}
           <form onSubmit={submit} className="mt-5 space-y-3">
             <input type="text" name="email" required value={email} onChange={(e) => setEmail(e.currentTarget.value)} placeholder="seu@email.com" autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false} inputMode="email" enterKeyHint="next" className="block w-full min-w-0 touch-manipulation rounded-xl border border-input bg-background px-4 py-3 text-base leading-normal outline-none focus:ring-2 focus:ring-primary" />
-            {mode !== "forgot" && <input type="password" name="password" required minLength={6} value={password} onChange={(e) => setPassword(e.currentTarget.value)} placeholder="Senha" autoComplete={mode === "login" ? "current-password" : "new-password"} enterKeyHint="go" className="block w-full min-w-0 touch-manipulation rounded-xl border border-input bg-background px-4 py-3 text-base leading-normal outline-none focus:ring-2 focus:ring-primary" />}
+            {mode !== "forgot" && <>
+              <input type="password" name="password" required minLength={6} value={password} onChange={(e) => setPassword(e.currentTarget.value)} placeholder="Senha" autoComplete={mode === "login" ? "current-password" : "new-password"} enterKeyHint="go" className="block w-full min-w-0 touch-manipulation rounded-xl border border-input bg-background px-4 py-3 text-base leading-normal outline-none focus:ring-2 focus:ring-primary" />
+              {mode === "signup" && password.length > 0 && <div className="rounded-xl border border-border bg-secondary/50 p-3 text-sm" aria-live="polite">
+                <p className={`font-semibold ${passwordStrength.score < 3 ? "text-destructive" : passwordStrength.score < 4 ? "text-amber-500" : "text-emerald-500"}`}>Segurança da senha: {passwordStrength.label}</p>
+                <ul className="mt-1 space-y-1 text-muted-foreground">
+                  <li>{password.length >= 12 ? "✓" : "•"} Pelo menos 12 caracteres</li>
+                  <li>{/[A-Z]/.test(password) && /[a-z]/.test(password) ? "✓" : "•"} Letras maiúsculas e minúsculas</li>
+                  <li>{/\d/.test(password) ? "✓" : "•"} Pelo menos um número</li>
+                  <li>{/[^A-Za-z0-9]/.test(password) ? "✓" : "•"} Pelo menos um símbolo (ex.: ! @ #)</li>
+                </ul>
+                {passwordStrength.score < 4 && <p className="mt-2 text-foreground">Sua senha está fraca. Combine os requisitos acima para criar uma senha mais segura.</p>}
+              </div>}
+            </>}
             <button disabled={busy} className="w-full rounded-full bg-ember py-3 font-bold text-primary-foreground disabled:opacity-50">
               {busy ? "Aguarde..." : mode === "login" ? "Entrar" : mode === "signup" ? "Criar conta" : "Enviar link"}
             </button>
@@ -102,7 +115,14 @@ function AuthPage() {
   );
 }
 
+function getPasswordStrength(password: string) {
+  const score = [password.length >= 12, /[A-Z]/.test(password) && /[a-z]/.test(password), /\\d/.test(password), /[^A-Za-z0-9]/.test(password)].filter(Boolean).length;
+  return { score, label: score <= 1 ? "Fraca" : score === 2 ? "Média" : score === 3 ? "Boa" : "Forte" };
+}
+
 function translate(m: string) {
+  if (/password.*weak|weak password|known to be weak|easy to guess/i.test(m)) return "Senha fraca: escolha uma senha mais forte, com pelo menos 12 caracteres, letras maiúsculas e minúsculas, números e símbolos.";
+  if (/password.*(length|short)|at least 6 characters/i.test(m)) return "A senha precisa ter pelo menos 6 caracteres.";
   if (/invalid login/i.test(m)) return "E-mail ou senha incorretos.";
   if (/not confirmed/i.test(m)) return "Confirme seu e-mail antes de entrar.";
   if (/already registered/i.test(m)) return "Este e-mail já tem conta.";
