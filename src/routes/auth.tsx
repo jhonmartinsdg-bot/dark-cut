@@ -87,8 +87,7 @@ function AuthPage() {
           {mode !== "forgot" && (
             <div className="mt-5 space-y-2">
               <div className="text-center text-xs text-muted-foreground">ou</div>
-              <button type="button" onClick={() => oauth("google")} className="w-full rounded-full border border-border py-3 font-semibold">Continuar com Google</button>
-              <button type="button" className="lovable-auth-button w-full" onClick={() => oauth("lovable")}>Continue with Lovable</button>
+              <button type="button" onClick={oauth} className="w-full rounded-full border border-border py-3 font-semibold">Continuar com Google</button>
             </div>
           )}
           <p className="mt-5 text-center text-sm text-muted-foreground">
