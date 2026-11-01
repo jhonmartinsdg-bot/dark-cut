@@ -327,9 +327,9 @@ function Editor() {
                     </div>
                   </div>
                 </div>
-                <button onClick={() => { setImgs([]); setSceneImageOverrides({}); }} className="mt-3 text-xs text-muted-foreground underline">Limpar todas as imagens</button>
+                 <button onClick={() => { setImgs([]); setSceneImageOverrides({}); }} className="mt-3 text-xs text-muted-foreground underline">Limpar todas as imagens</button>
               </div>
-            )}}
+            )}
           </Card>
 
           <Card n={4} title="Trilha sonora (ducking automático)">
