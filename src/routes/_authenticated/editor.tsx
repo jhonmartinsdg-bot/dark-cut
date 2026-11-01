@@ -21,6 +21,14 @@ export const Route = createFileRoute("/_authenticated/editor")({
 
 const W = 720, H = 1280;
 type CaptionStyle = "impacto" | "neon" | "cinematic" | "minimal";
+type CaptionFont = "impact" | "arial" | "georgia" | "trebuchet" | "verdana";
+const captionFonts: { value: CaptionFont; label: string; css: string }[] = [
+  { value: "impact", label: "Impact", css: "Impact, Arial Black, sans-serif" },
+  { value: "arial", label: "Arial", css: "Arial, sans-serif" },
+  { value: "georgia", label: "Georgia", css: "Georgia, Times New Roman, serif" },
+  { value: "trebuchet", label: "Trebuchet", css: "Trebuchet MS, sans-serif" },
+  { value: "verdana", label: "Verdana", css: "Verdana, sans-serif" },
+];
 const captionStyles: { value: CaptionStyle; label: string; description: string }[] = [
   { value: "impacto", label: "Impacto", description: "Bloco forte com palavra ativa em destaque" },
   { value: "neon", label: "Neon", description: "Brilho moderno e contorno" },
@@ -59,6 +67,10 @@ function Editor() {
   const [dragImageIndex, setDragImageIndex] = useState<number | null>(null);
   const [sceneImageOverrides, setSceneImageOverrides] = useState<Record<number, number>>({});
   const [captionStyle, setCaptionStyle] = useState<CaptionStyle>("impacto");
+  const [captionsEnabled, setCaptionsEnabled] = useState(true);
+  const [captionFont, setCaptionFont] = useState<CaptionFont>("impact");
+  const [captionColor, setCaptionColor] = useState("#fff7ed");
+  const [activeCaptionColor, setActiveCaptionColor] = useState("#ff4b2b");
   const [coverText, setCoverText] = useState("");
   const [script, setScript] = useState("");
   const [theme, setTheme] = useState("");
@@ -140,14 +152,15 @@ function Editor() {
     const g = c.createLinearGradient(0, H * 0.55, 0, H);
     g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,0,0,.75)");
     c.fillStyle = g; c.fillRect(0, 0, W, H);
-    // captions: groups of 3 words
+    // Captions are drawn into the canvas, so they are included in the exported video.
+    if (captionsEnabled && words.length > 0) {
     const wi = words.findIndex((w) => t >= w.start && t < w.end);
     if (wi >= 0) {
       const g0 = Math.floor(wi / 3) * 3;
       const group = words.slice(g0, g0 + 3);
-      if (captionStyle === "cinematic") c.font = "bold 68px Georgia, Times New Roman, serif";
-      else if (captionStyle === "minimal") c.font = "600 58px Arial, sans-serif";
-      else c.font = "bold 76px Impact, Arial Black, sans-serif";
+      const fontCss = captionFonts.find((f) => f.value === captionFont)?.css ?? "Impact, Arial Black, sans-serif";
+      const fontSize = captionStyle === "cinematic" ? 68 : captionStyle === "minimal" ? 58 : 76;
+      c.font = (captionStyle === "minimal" ? "600 " : "bold ") + fontSize + "px " + fontCss;
       c.textBaseline = "middle";
       const sp = 18;
       const widths: number[] = group.map((w) => c.measureText(w.text.toUpperCase()).width);
@@ -156,22 +169,23 @@ function Editor() {
       group.forEach((w, i) => {
         const active = g0 + i === wi;
         const txt = w.text.toUpperCase();
-        if (captionStyle === "impacto" && active) { c.fillStyle = "#ef4a2b"; c.fillRect(x - 8, y - 44, widths[i]! + 16, 88); }
+        if (captionStyle === "impacto" && active) { c.fillStyle = activeCaptionColor; c.fillRect(x - 8, y - 44, widths[i]! + 16, 88); }
         if (captionStyle === "neon") {
           c.shadowColor = active ? "#22d3ee" : "#f97316"; c.shadowBlur = 20; c.lineWidth = 5; c.strokeStyle = "#071018"; c.strokeText(txt, x, y);
-          c.fillStyle = active ? "#67e8f9" : "#fff7ed"; c.fillText(txt, x, y); c.shadowBlur = 0;
+          c.fillStyle = active ? activeCaptionColor : captionColor; c.fillText(txt, x, y); c.shadowBlur = 0;
         } else if (captionStyle === "cinematic") {
-          c.lineWidth = 4; c.strokeStyle = "rgba(0,0,0,.8)"; c.strokeText(txt, x, y); c.fillStyle = active ? "#fbbf24" : "#fff8e7"; c.fillText(txt, x, y);
+          c.lineWidth = 4; c.strokeStyle = "rgba(0,0,0,.8)"; c.strokeText(txt, x, y); c.fillStyle = active ? activeCaptionColor : captionColor; c.fillText(txt, x, y);
         } else {
           c.shadowColor = "rgba(0,0,0,.95)"; c.shadowBlur = 12; c.lineWidth = 3; c.strokeStyle = "#000"; c.strokeText(txt, x, y);
-          c.fillStyle = "#fff"; c.fillText(txt, x, y); c.shadowBlur = 0;
+          c.fillStyle = active ? activeCaptionColor : captionColor; c.fillText(txt, x, y); c.shadowBlur = 0;
         }
         x += widths[i]! + sp;
       });
     }
+    }
   }
 
-  useEffect(() => { draw(time); }, [time, scenes, words, imgs, sceneImageOverrides, captionStyle, coverText, theme, script]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { draw(time); }, [time, scenes, words, imgs, sceneImageOverrides, captionStyle, captionsEnabled, captionFont, captionColor, activeCaptionColor, coverText, theme, script]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function startAudio(dest?: AudioNode) {
     const a = ac();
@@ -316,6 +330,23 @@ function Editor() {
                   <p className="mt-1 text-[11px] text-muted-foreground">A abertura do vídeo recebe tratamento cinematográfico: imagem, contraste, título e chamada. Se deixar vazio, usamos o tema ou o início do roteiro.</p>
                   <div className="mt-3">
                     <label className="mb-2 block text-xs font-semibold">Estilo das legendas</label>
+                    <div className="mb-3 flex items-center justify-between rounded-lg bg-secondary/60 p-3">
+                      <span className="text-xs font-semibold">Legendas no vídeo</span>
+                      <button type="button" onClick={() => setCaptionsEnabled((v) => !v)} className={`rounded-full px-3 py-1 text-xs font-bold ${captionsEnabled ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{captionsEnabled ? "Ativadas ✓" : "Desativadas"}</button>
+                    </div>
+                    <div className="mb-3 grid gap-2 sm:grid-cols-3">
+                      <label className="text-xs font-semibold">Fonte
+                        <select value={captionFont} onChange={(e) => setCaptionFont(e.target.value as CaptionFont)} className="mt-1 w-full rounded-lg border border-input bg-card p-2 text-sm font-normal">
+                          {captionFonts.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
+                        </select>
+                      </label>
+                      <label className="text-xs font-semibold">Cor do texto
+                        <input type="color" value={captionColor} onChange={(e) => setCaptionColor(e.target.value)} className="mt-1 h-9 w-full cursor-pointer rounded border border-input bg-card p-1" />
+                      </label>
+                      <label className="text-xs font-semibold">Cor em destaque
+                        <input type="color" value={activeCaptionColor} onChange={(e) => setActiveCaptionColor(e.target.value)} className="mt-1 h-9 w-full cursor-pointer rounded border border-input bg-card p-1" />
+                      </label>
+                    </div>
                     <div className="grid grid-cols-2 gap-2">
                       {captionStyles.map((style) => (
                         <button key={style.value} type="button" onClick={() => setCaptionStyle(style.value)}
