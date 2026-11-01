@@ -2,8 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
-import "@lovable.dev/cloud-auth-js/styles.css";
 
 type Mode = "login" | "signup" | "forgot";
 
@@ -62,9 +60,12 @@ function AuthPage() {
     } finally { setBusy(false); }
   }
 
-  async function oauth(p: "google" | "lovable") {
-    const r = await lovable.auth.signInWithOAuth(p, { redirect_uri: window.location.origin + "/auth" + (redirect ? `?redirect=${encodeURIComponent(redirect)}` : "") });
-    if (r.error) toast.error("Não foi possível entrar agora.");
+  async function oauth() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin + dest },
+    });
+    if (error) toast.error("Não foi possível entrar com Google agora.");
   }
 
   const title = mode === "login" ? "Bem-vindo de volta" : mode === "signup" ? "Crie sua conta" : "Recuperar senha";
