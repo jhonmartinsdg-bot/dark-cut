@@ -23,7 +23,7 @@ export function PlansDialog({ open, onOpenChange, locked, title, subtitle }: {
     }
   }
   return (
-    <Dialog open={open} onOpenChange={locked ? undefined : onOpenChange}>
+    <Dialog open={open} onOpenChange={(o) => { if (!locked) onOpenChange?.(o); }}>
       <DialogContent
         className="max-h-[92dvh] max-w-4xl overflow-y-auto border-primary/50 bg-background p-6 sm:p-8 [&>button]:hidden"
         onInteractOutside={(e) => locked && e.preventDefault()}
