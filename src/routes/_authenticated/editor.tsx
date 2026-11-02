@@ -278,6 +278,13 @@ function Editor() {
 
   return (
     <div className="min-h-screen bg-background font-sans text-foreground">
+      <PlansDialog
+        open={paywall}
+        locked={!afterFree}
+        onOpenChange={setPaywall}
+        title={afterFree ? <>Seu vídeo está pronto. <span className="text-ember">Imagine 100 deles.</span></> as unknown as string : undefined}
+        subtitle={afterFree ? "Você usou seu vídeo grátis. Assine um plano para continuar criando — o próximo viral pode ser o seu." : undefined}
+      />
       <header className="flex items-center justify-between border-b border-border px-5 py-3">
         <Link to="/" className="font-display text-3xl tracking-wider">DARK<span className="text-ember">CUT</span></Link>
         <div className="flex items-center gap-4"><span className="hidden text-sm text-muted-foreground md:inline">{msg}</span><button onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/", replace: true }); }} className="rounded-full border border-border px-4 py-1.5 text-sm">Sair</button></div>
