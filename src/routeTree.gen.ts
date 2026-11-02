@@ -13,6 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as AuthenticatedAssinarRouteImport } from './routes/_authenticated/assinar'
+import { Route as AuthenticatedAssinaturaSucessoRouteImport } from './routes/_authenticated/assinatura-sucesso'
 import { Route as AuthenticatedEditorRouteImport } from './routes/_authenticated/editor'
 
 const IndexRoute = IndexRouteImport.update({
@@ -34,6 +36,17 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAssinarRoute = AuthenticatedAssinarRouteImport.update({
+  id: '/assinar',
+  path: '/assinar',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAssinaturaSucessoRoute =
+  AuthenticatedAssinaturaSucessoRouteImport.update({
+    id: '/assinatura-sucesso',
+    path: '/assinatura-sucesso',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedEditorRoute = AuthenticatedEditorRouteImport.update({
   id: '/editor',
   path: '/editor',
@@ -44,12 +57,16 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/assinar': typeof AuthenticatedAssinarRoute
+  '/assinatura-sucesso': typeof AuthenticatedAssinaturaSucessoRoute
   '/editor': typeof AuthenticatedEditorRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/assinar': typeof AuthenticatedAssinarRoute
+  '/assinatura-sucesso': typeof AuthenticatedAssinaturaSucessoRoute
   '/editor': typeof AuthenticatedEditorRoute
 }
 export interface FileRoutesById {
@@ -58,19 +75,35 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/assinar': typeof AuthenticatedAssinarRoute
+  '/_authenticated/assinatura-sucesso': typeof AuthenticatedAssinaturaSucessoRoute
   '/_authenticated/editor': typeof AuthenticatedEditorRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/reset-password' | '/editor'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/reset-password'
+    | '/assinar'
+    | '/assinatura-sucesso'
+    | '/editor'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/reset-password' | '/editor'
+  to:
+    | '/'
+    | '/auth'
+    | '/reset-password'
+    | '/assinar'
+    | '/assinatura-sucesso'
+    | '/editor'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/reset-password'
+    | '/_authenticated/assinar'
+    | '/_authenticated/assinatura-sucesso'
     | '/_authenticated/editor'
   fileRoutesById: FileRoutesById
 }
@@ -111,6 +144,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/assinar': {
+      id: '/_authenticated/assinar'
+      path: '/assinar'
+      fullPath: '/assinar'
+      preLoaderRoute: typeof AuthenticatedAssinarRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/assinatura-sucesso': {
+      id: '/_authenticated/assinatura-sucesso'
+      path: '/assinatura-sucesso'
+      fullPath: '/assinatura-sucesso'
+      preLoaderRoute: typeof AuthenticatedAssinaturaSucessoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/editor': {
       id: '/_authenticated/editor'
       path: '/editor'
@@ -122,10 +169,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAssinarRoute: typeof AuthenticatedAssinarRoute
+  AuthenticatedAssinaturaSucessoRoute: typeof AuthenticatedAssinaturaSucessoRoute
   AuthenticatedEditorRoute: typeof AuthenticatedEditorRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAssinarRoute: AuthenticatedAssinarRoute,
+  AuthenticatedAssinaturaSucessoRoute: AuthenticatedAssinaturaSucessoRoute,
   AuthenticatedEditorRoute: AuthenticatedEditorRoute,
 }
 
