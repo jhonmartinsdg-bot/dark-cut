@@ -11,9 +11,9 @@ async function stripe(path: string, init?: { method?: string; body?: Record<stri
   const res = await fetch(`https://api.stripe.com/v1/${path}`, {
     method: init?.method ?? "GET",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/x-www-form-urlencoded" },
-    body: init?.body ? new URLSearchParams(init.body).toString() : undefined,
+    body: init?.body ? new URLSearchParams(init.body).toString() : null,
   });
-  const json = (await res.json()) as Record<string, any>;
+  const json = (await res.json()) as any;
   if (!res.ok) {
     console.error("Stripe error", json?.error?.message);
     throw new Error("Não foi possível falar com o sistema de pagamento.");
@@ -98,7 +98,7 @@ export const confirmCheckout = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const s = await stripe(`checkout/sessions/${data.sessionId}?expand[]=subscription`);
     if (s.client_reference_id !== context.userId) throw new Error("Esta compra não pertence à sua conta.");
-    const sub = s.subscription as Record<string, any> | null;
+    const sub = s.subscription as any;
     if (s.status !== "complete" || !sub) return { active: false, plan: null };
     await loadRow(context.userId);
     const db = await admin();

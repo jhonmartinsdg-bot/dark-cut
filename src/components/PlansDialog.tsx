@@ -8,7 +8,7 @@ import { createCheckout } from "@/lib/billing.functions";
 import { PLANS, type PlanKey } from "@/lib/plans";
 
 export function PlansDialog({ open, onOpenChange, locked, title, subtitle }: {
-  open: boolean; onOpenChange?: (o: boolean) => void; locked?: boolean; title?: React.ReactNode; subtitle?: string;
+  open: boolean; onOpenChange?: (o: boolean) => void; locked?: boolean; title?: React.ReactNode | undefined; subtitle?: string | undefined;
 }) {
   const checkout = useServerFn(createCheckout);
   const [busy, setBusy] = useState<PlanKey | null>(null);
