@@ -4,6 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Upload, Scissors, Play, Pause, Download, ImagePlus, Music2, Sparkles } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { alignWords, buildScenes, cutSilences, detectSpeech, peaks, type Scene, type Segment, type Word } from "@/lib/audio-engine";
+import { useServerFn } from "@tanstack/react-start";
+import { getAccess, startExport } from "@/lib/billing.functions";
+import { PlansDialog } from "@/components/PlansDialog";
 
 export const Route = createFileRoute("/_authenticated/editor")({
   head: () => ({
@@ -57,6 +60,13 @@ const soundIdeas = [
 
 function Editor() {
   const navigate = useNavigate();
+  const getAccessFn = useServerFn(getAccess);
+  const startExportFn = useServerFn(startExport);
+  const [paywall, setPaywall] = useState(false);
+  const [afterFree, setAfterFree] = useState(false);
+  useEffect(() => {
+    getAccessFn().then((a) => { if (!a.active && a.freeLeft === 0) setPaywall(true); }).catch(() => {});
+  }, [getAccessFn]);
   const ctxRef = useRef<AudioContext | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [orig, setOrig] = useState<AudioBuffer | null>(null);
@@ -227,6 +237,12 @@ function Editor() {
 
   async function exportVideo() {
     if (!narr || !canvasRef.current) return;
+    let wasFree = false;
+    try {
+      const r = await startExportFn();
+      if (!r.ok) { setPaywall(true); return; }
+      wasFree = r.wasFree;
+    } catch { setMsg("Não foi possível verificar seu plano."); return; }
     setExporting(true); setMsg("Renderizando... mantenha esta aba aberta.");
     const a = ac();
     const dest = a.createMediaStreamDestination();
@@ -240,6 +256,7 @@ function Editor() {
       const url = URL.createObjectURL(blob);
       const el = document.createElement("a"); el.href = url; el.download = `darkcut.${mime.includes("mp4") ? "mp4" : "webm"}`; el.click();
       setExporting(false); setMsg("Vídeo exportado!");
+      if (wasFree) setTimeout(() => { setAfterFree(true); setPaywall(true); }, 1200);
     };
     rec.start();
     const p = startAudio(dest);
