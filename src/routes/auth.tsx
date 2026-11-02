@@ -6,9 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 type Mode = "login" | "signup" | "forgot";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (s: Record<string, unknown>): { redirect?: string } => {
+  validateSearch: (s: Record<string, unknown>): { redirect?: string; mode?: "signup"; email?: string } => {
     const v = s["redirect"]; const r = typeof v === "string" && v.startsWith("/") && !v.startsWith("//") ? v : undefined;
-    return r ? { redirect: r } : {};
+    return { ...(r ? { redirect: r } : {}), ...(s["mode"] === "signup" ? { mode: "signup" as const } : {}), ...(typeof s["email"] === "string" ? { email: s["email"].slice(0, 200) } : {}) };
   },
   head: () => ({
     meta: [
@@ -24,11 +24,11 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
-  const { redirect } = Route.useSearch();
+  const { redirect, mode: initialMode, email: initialEmail } = Route.useSearch();
   const dest = redirect ?? "/editor";
   const navigate = useNavigate();
-  const [mode, setMode] = useState<Mode>("login");
-  const [email, setEmail] = useState("");
+  const [mode, setMode] = useState<Mode>(initialMode ?? "login");
+  const [email, setEmail] = useState(initialEmail ?? "");
   const [password, setPassword] = useState("");
   const passwordStrength = getPasswordStrength(password);
   const [busy, setBusy] = useState(false);
@@ -76,6 +76,7 @@ function AuthPage() {
         <Link to="/" className="block text-center font-display text-4xl tracking-wider">DARK<span className="text-ember">CUT</span></Link>
         <div className="mt-6 rounded-3xl border border-border bg-card p-7 shadow-glow">
           <h1 className="font-display text-4xl">{title}</h1>
+          {mode === "signup" && !notice ? <p className="mt-2 text-sm text-accent">🎁 Teste grátis: crie sua conta e edite 1 vídeo sem pagar nada.</p> : null}
           {notice ? <p className="mt-4 rounded-xl bg-secondary p-3 text-sm">{notice}</p> : null}
           <form onSubmit={submit} className="mt-5 space-y-3">
             <input type="text" name="email" required value={email} onChange={(e) => setEmail(e.currentTarget.value)} placeholder="seu@email.com" autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false} inputMode="email" enterKeyHint="next" className="block w-full min-w-0 touch-manipulation rounded-xl border border-input bg-background px-4 py-3 text-base leading-normal outline-none focus:ring-2 focus:ring-primary" />

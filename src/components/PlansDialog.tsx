@@ -1,3 +1,4 @@
+import type React from "react";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, Crown } from "lucide-react";
@@ -7,7 +8,7 @@ import { createCheckout } from "@/lib/billing.functions";
 import { PLANS, type PlanKey } from "@/lib/plans";
 
 export function PlansDialog({ open, onOpenChange, locked, title, subtitle }: {
-  open: boolean; onOpenChange?: (o: boolean) => void; locked?: boolean; title?: string; subtitle?: string;
+  open: boolean; onOpenChange?: (o: boolean) => void; locked?: boolean; title?: React.ReactNode; subtitle?: string;
 }) {
   const checkout = useServerFn(createCheckout);
   const [busy, setBusy] = useState<PlanKey | null>(null);

@@ -282,7 +282,7 @@ function Editor() {
         open={paywall}
         locked={!afterFree}
         onOpenChange={setPaywall}
-        title={afterFree ? <>Seu vídeo está pronto. <span className="text-ember">Imagine 100 deles.</span></> as unknown as string : undefined}
+        title={afterFree ? <>Seu vídeo está pronto. <span className="text-ember">Imagine 100 deles.</span></> : undefined}
         subtitle={afterFree ? "Você usou seu vídeo grátis. Assine um plano para continuar criando — o próximo viral pode ser o seu." : undefined}
       />
       <header className="flex items-center justify-between border-b border-border px-5 py-3">

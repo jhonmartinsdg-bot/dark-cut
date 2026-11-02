@@ -6,6 +6,8 @@ import sectionBg from "@/assets/section-bg.webp";
 import figure from "@/assets/figure.webp";
 import darkCut from "@/assets/dark_cut.png.asset.json";
 import { useSessionUser } from "@/hooks/use-session";
+import { PLANS as plans } from "@/lib/plans";
+import { FreeTrialBump } from "@/components/FreeTrialBump";
 import { supabase } from "@/integrations/supabase/client";
 import { Scissors, Wand2, Captions, Music2, Film, Zap, Check, Star, Play } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -34,11 +36,6 @@ const features = [
   { icon: Zap, t: "Prévia 9:16 e exportação", d: "Veja o resultado em tempo real e exporte pronto para Shorts, Reels e TikTok." },
 ];
 
-const plans = [
-  { n: "Iniciante", p: "47", f: ["30 vídeos/mês", "Legendas virais", "Exportação 720p"] },
-  { n: "Criador", p: "97", f: ["150 vídeos/mês", "Tudo do Iniciante", "Exportação 1080p", "Trilhas premium"], hot: true },
-  { n: "Agência", p: "247", f: ["Vídeos ilimitados", "Multi-canais", "Prioridade no render", "Suporte VIP"] },
-];
 
 const testimonials = [
   { n: "Rafael S.", r: "Canal de mistério · 480k inscritos", q: "Eu levava 6 horas por vídeo. Hoje publico 3 por dia." },
@@ -161,6 +158,7 @@ function Landing() {
         </div>
       </header>
 
+      <FreeTrialBump />
       <Hero3D />
 
       <section className="relative overflow-hidden py-28">
@@ -228,7 +226,7 @@ function Landing() {
               <div className="font-bold">{p.n}</div>
               <div className="mt-3 font-display text-6xl">R${p.p}<span className="font-sans text-base text-muted-foreground">/mês</span></div>
               <ul className="mt-6 space-y-2">{p.f.map((f) => <li key={f} className="flex gap-2"><Check className="h-5 w-5 text-primary" />{f}</li>)}</ul>
-              <Link to="/editor" className={`mt-8 block rounded-full py-3 text-center font-bold ${p.hot ? "bg-ember text-primary-foreground" : "border border-border"}`}>Começar agora</Link>
+              <Link to="/assinar" search={{ plan: p.key }} className={`mt-8 block rounded-full py-3 text-center font-bold ${p.hot ? "bg-ember text-primary-foreground" : "border border-border"}`}>Começar agora</Link>
             </div>
           ))}
         </div>
