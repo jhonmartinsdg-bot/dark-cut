@@ -1,26 +1,18 @@
 import type React from "react";
 import { useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { Check, Crown } from "lucide-react";
-import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { createCheckout } from "@/lib/billing.functions";
-import { PLANS, type PlanKey } from "@/lib/plans";
+import { useSessionUser } from "@/hooks/use-session";
+import { PLANS, checkoutUrl, type PlanKey } from "@/lib/plans";
 
 export function PlansDialog({ open, onOpenChange, locked, title, subtitle }: {
   open: boolean; onOpenChange?: (o: boolean) => void; locked?: boolean; title?: React.ReactNode | undefined; subtitle?: string | undefined;
 }) {
-  const checkout = useServerFn(createCheckout);
+  const { user } = useSessionUser();
   const [busy, setBusy] = useState<PlanKey | null>(null);
-  async function buy(plan: PlanKey) {
+  function buy(plan: PlanKey) {
     setBusy(plan);
-    try {
-      const { url } = await checkout({ data: { plan } });
-      window.location.href = url;
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erro ao abrir o pagamento");
-      setBusy(null);
-    }
+    window.location.href = checkoutUrl(plan, user?.email);
   }
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!locked) onOpenChange?.(o); }}>
@@ -47,7 +39,7 @@ export function PlansDialog({ open, onOpenChange, locked, title, subtitle }: {
             </div>
           ))}
         </div>
-        <p className="mt-5 text-center text-xs text-muted-foreground">Pagamento seguro via Stripe · Cancele quando quiser · Garantia de 7 dias</p>
+        <p className="mt-5 text-center text-xs text-muted-foreground">Pagamento seguro via Kiwify · Use o mesmo e-mail da sua conta · Cancele quando quiser · Garantia de 7 dias</p>
       </DialogContent>
     </Dialog>
   );

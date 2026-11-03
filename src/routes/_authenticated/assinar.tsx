@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
-import { createCheckout } from "@/lib/billing.functions";
-import { PLAN_PRICES, type PlanKey } from "@/lib/plans";
+import { useEffect } from "react";
+import { useSessionUser } from "@/hooks/use-session";
+import { PLAN_PRICES, checkoutUrl, type PlanKey } from "@/lib/plans";
 
 export const Route = createFileRoute("/_authenticated/assinar")({
   validateSearch: (s: Record<string, unknown>): { plan: PlanKey } => ({
@@ -14,16 +13,13 @@ export const Route = createFileRoute("/_authenticated/assinar")({
 
 function Assinar() {
   const { plan } = Route.useSearch();
-  const checkout = useServerFn(createCheckout);
-  const [err, setErr] = useState("");
-  useEffect(() => {
-    checkout({ data: { plan } }).then(({ url }) => { window.location.href = url; }).catch((e) => setErr(e instanceof Error ? e.message : "Erro"));
-  }, [plan, checkout]);
+  const { user, ready } = useSessionUser();
+  useEffect(() => { if (ready) window.location.href = checkoutUrl(plan, user?.email); }, [ready, plan, user]);
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-5 text-center text-foreground">
       <div>
-        <div className="font-display text-5xl">{err ? "Ops..." : <>Abrindo o <span className="text-ember">pagamento</span></>}</div>
-        <p className="mt-3 text-muted-foreground">{err || "Você será levado ao checkout seguro da Stripe."}</p>
+        <div className="font-display text-5xl">Abrindo o <span className="text-ember">pagamento</span></div>
+        <p className="mt-3 text-muted-foreground">Você será levado ao checkout seguro da Kiwify. Use o mesmo e-mail da sua conta.</p>
       </div>
     </div>
   );

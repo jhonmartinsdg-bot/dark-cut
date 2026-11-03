@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { confirmCheckout } from "@/lib/billing.functions";
+import { useServerFn } from "@tanstack/react-start";
+import { getAccess } from "@/lib/billing.functions";
 
 export const Route = createFileRoute("/_authenticated/assinatura-sucesso")({
   validateSearch: (s: Record<string, unknown>): { session_id?: string } => (typeof s["session_id"] === "string" ? { session_id: s["session_id"] } : {}),
@@ -11,12 +11,12 @@ export const Route = createFileRoute("/_authenticated/assinatura-sucesso")({
 
 function Sucesso() {
   const { session_id } = Route.useSearch();
-  const confirm = useServerFn(confirmCheckout);
+  const access = useServerFn(getAccess);
   const [state, setState] = useState<"wait" | "ok" | "fail">("wait");
   useEffect(() => {
-    if (!session_id) { setState("fail"); return; }
-    confirm({ data: { sessionId: session_id } }).then((r) => setState(r.active ? "ok" : "fail")).catch(() => setState("fail"));
-  }, [session_id, confirm]);
+    void session_id;
+    access().then((r) => setState(r.active ? "ok" : "fail")).catch(() => setState("fail"));
+  }, [session_id, access]);
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-5 text-center text-foreground">
       <div className="max-w-md">
