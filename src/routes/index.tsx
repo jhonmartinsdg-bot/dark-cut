@@ -226,7 +226,7 @@ function Landing() {
               <div className="font-bold">{p.n}</div>
               <div className="mt-3 font-display text-6xl">R${p.p}<span className="font-sans text-base text-muted-foreground">/mês</span></div>
               <ul className="mt-6 space-y-2">{p.f.map((f) => <li key={f} className="flex gap-2"><Check className="h-5 w-5 text-primary" />{f}</li>)}</ul>
-              <Link to="/assinar" search={{ plan: p.key }} className={`mt-8 block rounded-full py-3 text-center font-bold ${p.hot ? "bg-ember text-primary-foreground" : "border border-border"}`}>Começar agora</Link>
+              <a href={p.checkout} target="_blank" rel="noopener noreferrer" className={`mt-8 block rounded-full py-3 text-center font-bold ${p.hot ? "bg-ember text-primary-foreground" : "border border-border"}`}>Começar agora</a>
             </div>
           ))}
         </div>
