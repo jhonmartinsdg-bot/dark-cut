@@ -16,3 +16,9 @@ export const PLANS: { key: PlanKey; n: string; p: string; f: string[]; hot?: boo
   { key: "criador", n: "Criador", p: "97", checkout: PLAN_CHECKOUTS.criador, f: ["150 vídeos/mês", "Tudo do Iniciante", "Exportação 1080p", "Trilhas premium"], hot: true },
   { key: "agencia", n: "Agência", p: "247", checkout: PLAN_CHECKOUTS.agencia, f: ["Vídeos ilimitados", "Multi-canais", "Prioridade no render", "Suporte VIP"] },
 ];
+
+/** Kiwify checkout link, pre-filling the account email so the webhook can match the buyer. */
+export function checkoutUrl(plan: PlanKey, email?: string | null): string {
+  const base = PLAN_CHECKOUTS[plan];
+  return email ? `${base}?email=${encodeURIComponent(email)}` : base;
+}
