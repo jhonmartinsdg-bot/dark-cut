@@ -125,9 +125,9 @@ function Hero3D() {
             Envie a narração e as imagens. Em 3 minutos a IA entrega um vídeo cinematográfico: silêncios cortados, cenas no ritmo da voz e legendas que prendem até o último segundo.
           </p>
           <div className="mt-8 flex animate-rise flex-wrap gap-3" style={{ animationDelay: ".45s" }}>
-            <Link to="/editor" className="inline-flex items-center gap-2 rounded-full bg-ember px-7 py-4 font-bold text-primary-foreground shadow-glow transition hover:scale-105">
-              <Play className="h-5 w-5" /> Criar meu primeiro vídeo
-            </Link>
+            <HeroCta className="inline-flex items-center gap-2 rounded-full bg-ember px-7 py-4 font-bold text-primary-foreground shadow-glow transition hover:scale-105">
+              <Play className="h-5 w-5" /> Criar meu primeiro vídeo grátis
+            </HeroCta>
             <a href="#planos" className="rounded-full border border-border bg-background/40 px-7 py-4 font-semibold backdrop-blur">Ver planos</a>
           </div>
           <div className="mt-6 flex items-center gap-2 text-sm text-foreground/70">
@@ -268,4 +268,10 @@ function NavAuth() {
       <Link to="/editor" className="rounded-full bg-ember px-4 py-2 text-sm font-bold text-primary-foreground sm:px-5">Abrir editor</Link>
     </div>
   );
+}
+
+function HeroCta({ className, children }: { className: string; children: React.ReactNode }) {
+  const { user } = useSessionUser();
+  if (user) return <Link to="/editor" className={className}>{children}</Link>;
+  return <Link to="/auth" search={{ mode: "signup", redirect: "/editor" }} className={className}>{children}</Link>;
 }
