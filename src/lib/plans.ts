@@ -5,8 +5,8 @@ export const PLAN_PRICES = {
 } as const;
 export type PlanKey = keyof typeof PLAN_PRICES;
 
-export const PLANS: { key: PlanKey; n: string; p: string; f: string[]; hot?: boolean }[] = [
-  { key: "iniciante", n: "Iniciante", p: "47", f: ["30 vídeos/mês", "Legendas virais", "Exportação 720p"] },
-  { key: "criador", n: "Criador", p: "97", f: ["150 vídeos/mês", "Tudo do Iniciante", "Exportação 1080p", "Trilhas premium"], hot: true },
-  { key: "agencia", n: "Agência", p: "247", f: ["Vídeos ilimitados", "Multi-canais", "Prioridade no render", "Suporte VIP"] },
+export const PLAN_CHECKOUTS: Record<PlanKey, string> = {\n  iniciante: "https://pay.kiwify.com.br/HlmiFNa",\n  criador: "https://pay.kiwify.com.br/ZbmNajz",\n  agencia: "https://pay.kiwify.com.br/MNdSLcO",\n};\n\nexport const PLANS: { key: PlanKey; n: string; p: string; f: string[]; hot?: boolean; checkout: string }[] = [
+  { key: "iniciante", n: "Iniciante", p: "47", checkout: PLAN_CHECKOUTS.iniciante, f: ["30 vídeos/mês", "Legendas virais", "Exportação 720p"] },
+  { key: "criador", n: "Criador", p: "97", checkout: PLAN_CHECKOUTS.criador, f: ["150 vídeos/mês", "Tudo do Iniciante", "Exportação 1080p", "Trilhas premium"], hot: true },
+  { key: "agencia", n: "Agência", p: "247", checkout: PLAN_CHECKOUTS.agencia, f: ["Vídeos ilimitados", "Multi-canais", "Prioridade no render", "Suporte VIP"] },
 ];
