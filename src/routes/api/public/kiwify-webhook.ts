@@ -30,8 +30,8 @@ export const Route = createFileRoute("/api/public/kiwify-webhook")({
         if (!userId) { console.warn("Kiwify: no account for buyer"); return new Response("no user"); }
 
         await db.from("user_access").upsert({ user_id: userId }, { onConflict: "user_id", ignoreDuplicates: true });
-        const update: Record<string, string | null> = { subscription_status: status, updated_at: new Date().toISOString() };
-        if (status === "active" && plan) update["plan"] = plan;
+        const update: { subscription_status: string; updated_at: string; plan?: string } = { subscription_status: status, updated_at: new Date().toISOString() };
+        if (status === "active" && plan) update.plan = plan;
         await db.from("user_access").update(update).eq("user_id", userId);
         return new Response("ok");
       },
