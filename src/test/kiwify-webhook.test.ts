@@ -1,4 +1,3 @@
-// @vitest-environment node
 import { createHmac } from "node:crypto";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import { handleKiwifyWebhook } from "@/lib/kiwify-webhook";
@@ -33,7 +32,7 @@ describe("signed Kiwify callbacks", () => {
     const response = await handleKiwifyWebhook(request({ webhook_event_type: event, order_status: orderStatus, Customer: customer, Product: product }));
     expect(response.status).toBe(200);
     expect(mocks.upsert).toHaveBeenCalledWith(expect.objectContaining({ user_id: "test-user", subscription_status: status, ...(status === "active" ? { plan: "agencia" } : {}) }), { onConflict: "user_id" });
-    expect(mocks.upsert.mock.calls[0][0]).not.toHaveProperty("free_videos_used");
+    expect(mocks.upsert.mock.calls[0]?.[0]).not.toHaveProperty("free_videos_used");
   });
   it("rejects forged signatures before account lookup", async () => {
     expect((await handleKiwifyWebhook(request({ Customer: customer }, false))).status).toBe(401);
@@ -66,6 +65,25 @@ describe("signed Kiwify callbacks", () => {
   });
   it("prioritizes refund status over an approval event", async () => {
     await handleKiwifyWebhook(request({ Customer: customer, Product: product, webhook_event_type: "order_approved", order_status: "refunded" }));
-    expect(mocks.upsert.mock.calls[0][0].subscription_status).toBe("canceled");
+    expect(mocks.upsert.mock.calls[0]?.[0]?.subscription_status).toBe("canceled");
+  });
+  it.each([
+    ["order_approved", "Iniciante", "iniciante"],
+    ["order_approved", "Criador", "criador"],
+    ["order_approved", "Agência", "agencia"],
+    ["subscription_renewed", "Iniciante", "iniciante"],
+    ["subscription_renewed", "Criador", "criador"],
+    ["subscription_renewed", "Agência", "agencia"],
+  ])("%s selects the %s product plan", async (event, name, plan) => {
+    expect((await handleKiwifyWebhook(request({ Customer: customer, Product: { product_name: `DarkCut ${name}` }, webhook_event_type: event }))).status).toBe(200);
+    expect(mocks.upsert.mock.calls[0]?.[0]).toMatchObject({ plan, subscription_status: "active" });
+  });
+  it("uses the specific renewal plan over a generic product name", async () => {
+    await handleKiwifyWebhook(request({ Customer: customer, Product: product, Subscription: { plan: { name: "Criador" } }, webhook_event_type: "subscription_renewed" }));
+    expect(mocks.upsert.mock.calls[0]?.[0]).toMatchObject({ plan: "criador" });
+  });
+  it("does not mistake a partial word for a plan", async () => {
+    expect((await handleKiwifyWebhook(request({ Customer: customer, Product: { product_name: "Agenciamento" }, webhook_event_type: "order_approved" }))).status).toBe(422);
+    expect(mocks.upsert).not.toHaveBeenCalled();
   });
 });

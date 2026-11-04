@@ -22,8 +22,12 @@ export function interpretKiwify(p: z.infer<typeof kiwifyPayloadSchema>): { email
   let status: "active" | "canceled" | null = null;
   if (["refunded", "chargedback"].includes(orderStatus) || INACTIVE_EVENTS.includes(event)) status = "canceled";
   else if (ACTIVE_EVENTS.includes(event) || (!event && orderStatus === "paid")) status = "active";
-  const name = `${p?.Product?.product_name ?? ""} ${p?.Subscription?.plan?.name ?? ""}`
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  const plan: PlanKey | null = name.includes("agencia") ? "agencia" : name.includes("criador") ? "criador" : name.includes("iniciante") ? "iniciante" : null;
+  const identifyPlan = (name: string): PlanKey | null => {
+    const normalized = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    const matches = (["iniciante", "criador", "agencia"] as const).filter((key) => new RegExp(`\\b${key}\\b`).test(normalized));
+    return matches.length === 1 ? matches[0] ?? null : null;
+  };
+  // A subscription's specific plan is authoritative over the generic product name.
+  const plan = identifyPlan(p.Subscription?.plan?.name ?? "") ?? identifyPlan(p.Product?.product_name ?? "");
   return { email, status, plan };
 }
