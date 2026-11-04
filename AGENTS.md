@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 - Signed-in-only pages live under src/routes/_authenticated/ (client-side gate redirects to /auth?redirect=…); why: one place protects the editor and future private pages.
 - Sales-page hero parallax writes CSS variables from one rAF loop instead of React state; why: avoids re-rendering on every mouse/scroll event.
+- Kiwify callbacks use a separately testable signed-request handler and an atomic access upsert; why: failed writes must request delivery retries and repeated events must preserve trial usage.
