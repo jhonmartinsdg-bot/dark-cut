@@ -4,3 +4,4 @@
 - [x] Stripe plans checkout, free trial (1 video per account), paywall after download
 - [ ] Test Kiwify approval, renewal, cancellation and refund callbacks; correct processing failures.
 - [ ] Verify approved purchases and renewals select the correct Kiwify product plan.
+- [ ] Simplify signup password requirements and fix Google sign-in.
