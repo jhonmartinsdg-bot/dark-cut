@@ -2,6 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
+import { MIN_PASSWORD_LENGTH, oauthReturnUrl, safeAuthDestination, validNewPassword } from "@/lib/auth-policy";
 
 type Mode = "login" | "signup" | "forgot";
 
@@ -30,15 +32,19 @@ function AuthPage() {
   const [mode, setMode] = useState<Mode>(initialMode ?? "login");
   const [email, setEmail] = useState(initialEmail ?? "");
   const [password, setPassword] = useState("");
-  const passwordStrength = getPasswordStrength(password);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => { if (data.session) navigate({ href: dest, replace: true }); });
-    const { data: sub } = supabase.auth.onAuthStateChange((e, s) => { if (e === "SIGNED_IN" && s) navigate({ href: dest, replace: true }); });
+    const finishSignIn = () => {
+      const target = safeAuthDestination(redirect ?? sessionStorage.getItem("darkcut-auth-destination") ?? dest);
+      sessionStorage.removeItem("darkcut-auth-destination");
+      navigate({ href: target, replace: true });
+    };
+    supabase.auth.getSession().then(({ data }) => { if (data.session) finishSignIn(); });
+    const { data: sub } = supabase.auth.onAuthStateChange((e, s) => { if (e === "SIGNED_IN" && s) finishSignIn(); });
     return () => sub.subscription.unsubscribe();
-  }, [dest, navigate]);
+  }, [dest, redirect, navigate]);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -48,7 +54,8 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       } else if (mode === "signup") {
-        const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin + dest } });
+        if (!validNewPassword(password)) throw new Error("Password too short");
+        const { data, error } = await supabase.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: `${window.location.origin}/auth?redirect=${encodeURIComponent(safeAuthDestination(dest))}` } });
         if (error) throw error;
         if (!data.session) setNotice("Conta criada! Confirme pelo link que enviamos ao seu e-mail.");
       } else {
@@ -62,11 +69,19 @@ function AuthPage() {
   }
 
   async function oauth() {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: window.location.origin + dest },
-    });
-    if (error) toast.error("Não foi possível entrar com Google agora.");
+    setBusy(true);
+    try {
+      sessionStorage.setItem("darkcut-auth-destination", safeAuthDestination(dest));
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: oauthReturnUrl(window.location.origin),
+      });
+      if (result.error) { toast.error("Não foi possível entrar com Google agora. Tente novamente."); return; }
+      if (result.redirected) return;
+      const { data } = await supabase.auth.getSession();
+      if (data.session) navigate({ href: safeAuthDestination(dest), replace: true });
+    } catch {
+      toast.error("Não foi possível entrar com Google agora. Tente novamente.");
+    } finally { setBusy(false); }
   }
 
   const title = mode === "login" ? "Bem-vindo de volta" : mode === "signup" ? "Crie sua conta" : "Recuperar senha";
@@ -81,17 +96,8 @@ function AuthPage() {
           <form onSubmit={submit} className="mt-5 space-y-3">
             <input type="text" name="email" required value={email} onChange={(e) => setEmail(e.currentTarget.value)} placeholder="seu@email.com" autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false} inputMode="email" enterKeyHint="next" className="block w-full min-w-0 touch-manipulation rounded-xl border border-input bg-background px-4 py-3 text-base leading-normal outline-none focus:ring-2 focus:ring-primary" />
             {mode !== "forgot" && <>
-              <input type="password" name="password" required minLength={6} value={password} onChange={(e) => setPassword(e.currentTarget.value)} placeholder="Senha" autoComplete={mode === "login" ? "current-password" : "new-password"} enterKeyHint="go" className="block w-full min-w-0 touch-manipulation rounded-xl border border-input bg-background px-4 py-3 text-base leading-normal outline-none focus:ring-2 focus:ring-primary" />
-              {mode === "signup" && password.length > 0 && <div className="rounded-xl border border-border bg-secondary/50 p-3 text-sm" aria-live="polite">
-                <p className={`font-semibold ${passwordStrength.score < 3 ? "text-destructive" : passwordStrength.score < 4 ? "text-amber-500" : "text-emerald-500"}`}>Segurança da senha: {passwordStrength.label}</p>
-                <ul className="mt-1 space-y-1 text-muted-foreground">
-                  <li>{password.length >= 12 ? "✓" : "•"} Pelo menos 12 caracteres</li>
-                  <li>{/[A-Z]/.test(password) && /[a-z]/.test(password) ? "✓" : "•"} Letras maiúsculas e minúsculas</li>
-                  <li>{/\d/.test(password) ? "✓" : "•"} Pelo menos um número</li>
-                  <li>{/[^A-Za-z0-9]/.test(password) ? "✓" : "•"} Pelo menos um símbolo (ex.: ! @ #)</li>
-                </ul>
-                {passwordStrength.score < 4 && <p className="mt-2 text-foreground">Sua senha está fraca. Combine os requisitos acima para criar uma senha mais segura.</p>}
-              </div>}
+              <input type="password" name="password" required minLength={mode === "signup" ? MIN_PASSWORD_LENGTH : undefined} value={password} onChange={(e) => setPassword(e.currentTarget.value)} placeholder="Senha" autoComplete={mode === "login" ? "current-password" : "new-password"} enterKeyHint="go" className="block w-full min-w-0 touch-manipulation rounded-xl border border-input bg-background px-4 py-3 text-base leading-normal outline-none focus:ring-2 focus:ring-primary" />
+              {mode === "signup" && <p className="text-sm text-muted-foreground">No mínimo 8 caracteres.</p>}
             </>}
             <button disabled={busy} className="w-full rounded-full bg-ember py-3 font-bold text-primary-foreground disabled:opacity-50">
               {busy ? "Aguarde..." : mode === "login" ? "Entrar" : mode === "signup" ? "Criar conta" : "Enviar link"}
@@ -101,7 +107,7 @@ function AuthPage() {
           {mode !== "forgot" && (
             <div className="mt-5 space-y-2">
               <div className="text-center text-xs text-muted-foreground">ou</div>
-              <button type="button" onClick={oauth} className="w-full rounded-full border border-border py-3 font-semibold">Continuar com Google</button>
+              <button type="button" disabled={busy} onClick={oauth} className="w-full rounded-full border border-border py-3 font-semibold disabled:opacity-50">Continuar com Google</button>
             </div>
           )}
           <p className="mt-5 text-center text-sm text-muted-foreground">
@@ -116,14 +122,9 @@ function AuthPage() {
   );
 }
 
-function getPasswordStrength(password: string) {
-  const score = [password.length >= 12, /[A-Z]/.test(password) && /[a-z]/.test(password), /\\d/.test(password), /[^A-Za-z0-9]/.test(password)].filter(Boolean).length;
-  return { score, label: score <= 1 ? "Fraca" : score === 2 ? "Média" : score === 3 ? "Boa" : "Forte" };
-}
-
 function translate(m: string) {
-  if (/password.*weak|weak password|known to be weak|easy to guess/i.test(m)) return "Senha fraca: escolha uma senha mais forte, com pelo menos 12 caracteres, letras maiúsculas e minúsculas, números e símbolos.";
-  if (/password.*(length|short)|at least 6 characters/i.test(m)) return "A senha precisa ter pelo menos 6 caracteres.";
+  if (/password.*weak|weak password|known to be weak|easy to guess/i.test(m)) return "Esta senha é conhecida por vazamentos. Escolha outra senha com 8 caracteres ou mais.";
+  if (/password.*(length|short)|at least \d+ characters/i.test(m)) return "A senha precisa ter pelo menos 8 caracteres.";
   if (/invalid login/i.test(m)) return "E-mail ou senha incorretos.";
   if (/not confirmed/i.test(m)) return "Confirme seu e-mail antes de entrar.";
   if (/already registered/i.test(m)) return "Este e-mail já tem conta.";
