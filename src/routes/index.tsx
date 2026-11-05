@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import heroBg from "@/assets/hero-bg.webp";
 import heroBgSm from "@/assets/hero-bg-sm.webp";
@@ -8,7 +8,10 @@ import darkCut from "@/assets/dark_cut.png.asset.json";
 import { useSessionUser } from "@/hooks/use-session";
 import { PLANS as plans } from "@/lib/plans";
 import { FreeTrialBump } from "@/components/FreeTrialBump";
-import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { signOutAndClear } from "@/lib/auth-actions";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { Scissors, Wand2, Captions, Music2, Film, Zap, Check, Star, Play } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
@@ -253,6 +256,8 @@ function Landing() {
 
 function NavAuth() {
   const { user, ready } = useSessionUser();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
   if (!ready) return <span className="h-9 w-28" />;
   if (!user) {
     return (
@@ -264,7 +269,7 @@ function NavAuth() {
   }
   return (
     <div className="flex shrink-0 items-center gap-3">
-      <button onClick={() => supabase.auth.signOut()} className="hidden text-sm text-muted-foreground sm:inline">Sair</button>
+      <Button variant="ghost" onClick={async () => { try { await signOutAndClear(queryClient); await navigate({ to: "/auth", replace: true }); } catch { toast.error("Não foi possível sair. Tente novamente."); } }} className="text-sm text-muted-foreground">Sair</Button>
       <Link to="/editor" className="rounded-full bg-ember px-4 py-2 text-sm font-bold text-primary-foreground sm:px-5">Abrir editor</Link>
     </div>
   );
