@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Correct immediate authenticated signup, simple passwords, sign-in, sign-out and recovery; verify hosted settings and real flows.
 - [x] Hero performance: smooth parallax, lighter images
 - [x] Lovable Cloud + auth (signup, login, logout, password reset), protected editor, navbar session state
 - [x] Stripe plans checkout, free trial (1 video per account), paywall after download
