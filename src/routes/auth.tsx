@@ -4,6 +4,9 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { MIN_PASSWORD_LENGTH, oauthReturnUrl, safeAuthDestination, validNewPassword } from "@/lib/auth-policy";
+import { signupAndAuthenticate, verifiedUser } from "@/lib/auth-actions";
+import { useSessionUser } from "@/hooks/use-session";
+import { Button } from "@/components/ui/button";
 
 type Mode = "login" | "signup" | "forgot";
 
@@ -34,6 +37,7 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
+  const { user, ready } = useSessionUser();
 
   useEffect(() => {
     const finishSignIn = () => {
@@ -41,10 +45,8 @@ function AuthPage() {
       sessionStorage.removeItem("darkcut-auth-destination");
       navigate({ href: target, replace: true });
     };
-    supabase.auth.getSession().then(({ data }) => { if (data.session) finishSignIn(); });
-    const { data: sub } = supabase.auth.onAuthStateChange((e, s) => { if (e === "SIGNED_IN" && s) finishSignIn(); });
-    return () => sub.subscription.unsubscribe();
-  }, [dest, redirect, navigate]);
+    if (ready && user && !busy) finishSignIn();
+  }, [dest, redirect, navigate, user, ready, busy]);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -53,11 +55,12 @@ function AuthPage() {
       if (mode === "login") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        await verifiedUser();
       } else if (mode === "signup") {
         if (!validNewPassword(password)) throw new Error("Password too short");
-        const { data, error } = await supabase.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: `${window.location.origin}/auth?redirect=${encodeURIComponent(safeAuthDestination(dest))}` } });
-        if (error) throw error;
-        if (!data.session) setNotice("Conta criada! Confirme pelo link que enviamos ao seu e-mail.");
+        await signupAndAuthenticate(email, password, window.location.origin);
+        sessionStorage.removeItem("darkcut-auth-destination");
+        await navigate({ to: "/editor", replace: true });
       } else {
         const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
         if (error) throw error;
@@ -77,8 +80,8 @@ function AuthPage() {
       });
       if (result.error) { toast.error("Não foi possível entrar com Google agora. Tente novamente."); return; }
       if (result.redirected) return;
-      const { data } = await supabase.auth.getSession();
-      if (data.session) navigate({ href: safeAuthDestination(dest), replace: true });
+      await verifiedUser();
+      navigate({ href: safeAuthDestination(dest), replace: true });
     } catch {
       toast.error("Não foi possível entrar com Google agora. Tente novamente.");
     } finally { setBusy(false); }
@@ -99,22 +102,22 @@ function AuthPage() {
               <input type="password" name="password" required minLength={mode === "signup" ? MIN_PASSWORD_LENGTH : undefined} value={password} onChange={(e) => setPassword(e.currentTarget.value)} placeholder="Senha" autoComplete={mode === "login" ? "current-password" : "new-password"} enterKeyHint="go" className="block w-full min-w-0 touch-manipulation rounded-xl border border-input bg-background px-4 py-3 text-base leading-normal outline-none focus:ring-2 focus:ring-primary" />
               {mode === "signup" && <p className="text-sm text-muted-foreground">No mínimo 8 caracteres.</p>}
             </>}
-            <button disabled={busy} className="w-full rounded-full bg-ember py-3 font-bold text-primary-foreground disabled:opacity-50">
+            <Button disabled={busy} className="h-auto w-full rounded-full bg-ember py-3 font-bold text-primary-foreground disabled:opacity-50">
               {busy ? "Aguarde..." : mode === "login" ? "Entrar" : mode === "signup" ? "Criar conta" : "Enviar link"}
-            </button>
+            </Button>
           </form>
-          {mode === "login" && <button onClick={() => setMode("forgot")} className="mt-3 text-sm text-muted-foreground underline">Esqueci minha senha</button>}
+          {mode === "login" && <Button variant="link" onClick={() => setMode("forgot")} className="mt-3 p-0 text-sm text-muted-foreground underline">Esqueci minha senha</Button>}
           {mode !== "forgot" && (
             <div className="mt-5 space-y-2">
               <div className="text-center text-xs text-muted-foreground">ou</div>
-              <button type="button" disabled={busy} onClick={oauth} className="w-full rounded-full border border-border py-3 font-semibold disabled:opacity-50">Continuar com Google</button>
+              <Button variant="outline" type="button" disabled={busy} onClick={oauth} className="h-auto w-full rounded-full border border-border py-3 font-semibold disabled:opacity-50">Continuar com Google</Button>
             </div>
           )}
           <p className="mt-5 text-center text-sm text-muted-foreground">
             {mode === "signup" ? "Já tem conta? " : mode === "login" ? "Ainda não tem conta? " : "Lembrou? "}
-            <button onClick={() => { setMode(mode === "login" ? "signup" : "login"); setNotice(""); }} className="font-bold text-foreground underline">
+            <Button variant="link" onClick={() => { setMode(mode === "login" ? "signup" : "login"); setNotice(""); }} className="h-auto p-0 font-bold text-foreground underline">
               {mode === "login" ? "Criar conta" : "Entrar"}
-            </button>
+            </Button>
           </p>
         </div>
       </div>
