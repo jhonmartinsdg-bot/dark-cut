@@ -44,7 +44,11 @@ describe("session protection", () => {
       return { error: null };
     });
     await signOutAndClear(client);
-    expect(cancel.mock.invocationCallOrder[0]).toBeLessThan(clear.mock.invocationCallOrder[0]);
-    expect(clear.mock.invocationCallOrder[0]).toBeLessThan(auth.signOut.mock.invocationCallOrder[0]);
+    const cancelOrder = cancel.mock.invocationCallOrder[0];
+    const clearOrder = clear.mock.invocationCallOrder[0];
+    const signOutOrder = auth.signOut.mock.invocationCallOrder[0];
+    if (cancelOrder === undefined || clearOrder === undefined || signOutOrder === undefined) throw new Error("Missing sign-out step");
+    expect(cancelOrder).toBeLessThan(clearOrder);
+    expect(clearOrder).toBeLessThan(signOutOrder);
   });
 });
