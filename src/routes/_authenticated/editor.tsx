@@ -1,5 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { signOutAndClear } from "@/lib/auth-actions";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Upload, Scissors, Play, Pause, Download, ImagePlus, Music2, Sparkles } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
@@ -60,6 +63,7 @@ const soundIdeas = [
 
 function Editor() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const getAccessFn = useServerFn(getAccess);
   const startExportFn = useServerFn(startExport);
   const [paywall, setPaywall] = useState(false);
@@ -287,7 +291,7 @@ function Editor() {
       />
       <header className="flex items-center justify-between border-b border-border px-5 py-3">
         <Link to="/" className="font-display text-3xl tracking-wider">DARK<span className="text-ember">CUT</span></Link>
-        <div className="flex items-center gap-4"><span className="hidden text-sm text-muted-foreground md:inline">{msg}</span><button onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/", replace: true }); }} className="rounded-full border border-border px-4 py-1.5 text-sm">Sair</button></div>
+        <div className="flex items-center gap-4"><span className="hidden text-sm text-muted-foreground md:inline">{msg}</span><Button variant="outline" onClick={async () => { try { await signOutAndClear(queryClient); await navigate({ to: "/auth", replace: true }); } catch { toast.error("Não foi possível sair. Tente novamente."); } }} className="rounded-full border border-border px-4 py-1.5 text-sm">Sair</Button></div>
       </header>
       <div className="grid gap-6 p-5 lg:grid-cols-[1fr_auto]">
         <div className="space-y-4">

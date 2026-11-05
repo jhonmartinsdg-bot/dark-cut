@@ -1,9 +1,12 @@
 # Roadmap
+- [x] Correct frontend signup/session verification, central auth state, cache-safe logout and recovery link validation; all 40 tests pass.
+- [ ] Enable immediate signup sessions: hosted mailer_autoconfirm is false; user must enable Auto-confirm email in More → Users → Auth settings → Email (current HIBP setting unavailable, so blanket configuration tool cannot safely preserve it).
+- [ ] Finish password login and recovery link end-to-end: test signup accepted eight lowercase characters but login remains blocked by hosted email confirmation; recovery request returned 200, inbox link and actual password update require user completion.
 - [x] Hero performance: smooth parallax, lighter images
 - [x] Lovable Cloud + auth (signup, login, logout, password reset), protected editor, navbar session state
 - [x] Stripe plans checkout, free trial (1 video per account), paywall after download
 - [x] Test Kiwify approval, renewal, cancellation and refund handler; correct processing failures (automated signed requests).
 - [ ] Verify actual Kiwify product mapping and payment readback: blocked on real Product / Subscription.plan payloads; all public links show DARKCUT, isolated test-account administration returned 403.
 - [x] Simplify signup form to accept eight characters and fix managed Google sign-in initiation; 33 tests pass.
-- [ ] Align hosted password requirements: user must set minimum 8 and remove required character classes in More → Users → Auth settings → Email; agent cannot change these settings.
+- [x] Verify hosted password acceptance: real signup accepted an eight-character lowercase-only password (HTTP 200); longer passwords remain permitted by the form.
 - [ ] Complete Google account sign-in: provider initiation verified; requires real Google authorization.
